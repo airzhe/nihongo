@@ -36,7 +36,7 @@
         #sentence-container{font-size:1.6em;margin:45px 0;line-height:1.7;color:#333;min-height:5em;}
         #sentence-container .blank{font-weight:700;color:var(--incorrect-color);border-bottom:2px dashed var(--incorrect-color);padding:0 12px;}
         #options-container{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:20px;}
-        .option-btn{display:flex;align-items:center;gap:15px;padding:15px;font-size:1.1em;background-color:var(--white-color);border:1px solid var(--border-color);border-radius:10px;cursor:pointer;font-weight:700;}
+        .option-btn{display:flex;align-items:center;gap:15px;padding:15px;font-size:1.1em;background-color:var(--white-color);border:1px solid var(--border-color);border-radius:10px;cursor:pointer;font-weight:700;-moz-user-select:text;user-select:text;}
         .option-btn:hover:not(.answered){border-color:var(--primary-color);background-color:#f8f9fa;}
         .option-btn.answered{pointer-events:none;opacity:.85;}
         .key-hint{font-size:.9em;font-weight:700;background-color:#F0F3F7;color:var(--light-text-color);border:1px solid var(--border-color);border-radius:6px;width:28px;height:28px;display:inline-flex;justify-content:center;align-items:center;flex-shrink:0;user-select:none;}
