@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>単語練習</title>
+    <!-- 
+      说明: 为了方便您在本地直接打开并看到效果，我们暂时使用Tailwind的JIT脚本。
+      这种方式适合开发和测试。
+      对于最终的线上版本，推荐使用Tailwind CLI构建一个静态的CSS文件，并用 <link> 标签引入。
+    -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+    <style>
+        :root {
+            --body-bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --body-text-color: #2d3748;
+            --container-bg: rgba(255, 255, 255, 0.95);
+            --gradient-text-bg: linear-gradient(45deg, #667eea, #764ba2);
+            --progress-bar-bg: #e9d5ff;
+            --progress-fill-bg: linear-gradient(to right, #3b82f6, #8b5cf6);
+            --feedback-green-text: #047857;
+            --feedback-red-text: #b91c1c;
+            --glass-morphism-bg: rgba(233, 236, 241, 0.6);
+            --glass-morphism-border: 1px solid rgba(229, 231, 235, 0.5);
+            --glass-morphism-header-text: #4f46e5;
+            --immersive-quiz-container-bg: rgba(255, 255, 255, 0.25);
+        }
+
+        body.dark {
+            --body-bg-gradient: linear-gradient(135deg, #1a2634 0%, #2c3e50 100%);
+            --body-text-color: #e2e8f0;
+            --container-bg: rgba(45, 55, 72, 0.95);
+            --gradient-text-bg: linear-gradient(45deg, #818cf8, #c084fc);
+            --progress-bar-bg: #4b5563;
+            --feedback-green-text: #34d399;
+            --feedback-red-text: #f87171;
+            --glass-morphism-bg: rgba(45, 55, 72, 0.6);
+            --glass-morphism-border: 1px solid rgba(255, 255, 255, 0.15);
+            --glass-morphism-header-text: #818cf8;
+            --immersive-quiz-container-bg: rgba(30, 41, 59, 0.6);
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background: var(--body-bg-gradient);
+            color: var(--body-text-color);
+            transition: background 0.5s ease, color 0.5s ease;
+            overscroll-behavior-y: contain;
+        }
+
+        body.quiz-mode-active main.container {
+            padding: 0;
+            max-width: 100%;
+            height: 100dvh;
+            display: flex;
+        }
+
+        #quizContainer.immersive-active {
+            width: 100%;
+            height: 100dvh;
+            min-height: 100dvh;
+            margin: 0 !important;
+            border-radius: 0;
+            box-shadow: none;
+            padding-top: calc(env(safe-area-inset-top, 0px) + 1.5rem) !important;
+            padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem) !important;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            position: relative;
+            background: var(--immersive-quiz-container-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        #quizContainer.immersive-active .question-area-wrapper {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-bottom: 7.5rem;
+            align-items: center;
+        }
+
+        #quizContainer.immersive-active .question-content-area {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        #quizContainer.immersive-active .options {
+            margin-top: auto;
+            padding-bottom: 2rem;
+            width: 100%;
+            position: relative;
+        }
+
+        #exampleSentenceDisplay {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 0.5rem;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
+            word-break: normal;
+            line-height: 1.6;
+        }
+
+        #exampleSentenceDisplay.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .inline-feedback-area {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: 600;
+            padding: 8px 0;
+            margin-bottom: 1rem;
+            min-height: 4em;
+            line-height: 1.4;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .inline-feedback-area.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .header,
+        .controls {
+            background: var(--container-bg);
+        }
+
+        .gradient-text {
+            background: var(--gradient-text-bg);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        body.quiz-mode-active .theme-toggle {
+            display: none !important;
+        }
+
+        .progress-bar {
+            background: var(--progress-bar-bg);
+        }
+
+        .progress-fill {
+            background: var(--progress-fill-bg);
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background-image: linear-gradient(-45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent);
+            background-size: 30px 30px;
+            animation: move 2s linear infinite;
+        }
+
+        @keyframes move {
+            from {
+                background-position: 0 0;
+            }
+
+            to {
+                background-position: 30px 30px;
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes incorrectShake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-4px);
+            }
+
+            75% {
+                transform: translateX(4px);
+            }
+        }
+
+        .header.hidden-during-quiz,
+        .controls.hidden-during-quiz {
+            display: none !important;
+        }
+
+        .features.glass-morphism {
+            background: var(--glass-morphism-bg);
+            border: var(--glass-morphism-border);
+        }
+
+        .features.glass-morphism h3 {
+            color: var(--glass-morphism-header-text);
+        }
+
+        .inline-feedback-area.correct-inline {
+            color: var(--feedback-green-text);
+        }
+
+        .inline-feedback-area.incorrect-inline {
+            color: var(--feedback-red-text);
+        }
+
+        .tab-button {
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+            border-bottom: 3px solid transparent;
+            color: #6b7280;
+        }
+
+        .tab-button.active {
+            color: #4f46e5;
+            border-color: #4f46e5;
+        }
+
+        body.dark .tab-button {
+            color: #9ca3af;
+        }
+
+        body.dark .tab-button.active {
+            color: #818cf8;
+            border-color: #818cf8;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #6366f1;
+            animation: spin 1s linear infinite;
+        }
+
+        body.dark .loading-spinner {
+            border-left-color: #a5b4fc;
+        }
+
+        @media (max-width: 768px) {
+            #keyboardHint {
+                display: none !important;
+            }
+        }
+
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #1f2937;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+
+        body.dark .btn-secondary {
+            background-color: #4b5563;
+            color: #e5e7eb;
+        }
+
+        body.dark .btn-secondary:hover {
+            background-color: #6b7280;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen text-gray-800 dark:text-gray-200 relative">
+
+    <!-- HTML -->
+    <button id="themeToggleBtn"
+        class="theme-toggle fixed top-5 right-5 bg-white dark:bg-gray-800 bg-opacity-90 dark:bg-opacity-80 rounded-full w-12 h-12 flex items-center justify-center text-2xl cursor-pointer shadow-md transition-all duration-300 hover:scale-110 hover:shadow-lg z-50"></button>
+    <main class="container mx-auto p-5 max-w-4xl">
+        <div
+            class="header backdrop-blur-md rounded-2xl p-8 mb-8 text-center shadow-lg border border-white border-opacity-20 animate-[slideDown_0.8s_ease]">
+            <h1 id="mainTitle" class="text-4xl font-bold mb-2 gradient-text">語彙練習</h1>
+            <p class="text-gray-600 dark:text-gray-300 text-lg">日本語能力試験スタイル語彙練習</p>
+        </div>
+        <div
+            class="controls backdrop-blur-md rounded-xl p-5 mb-8 flex flex-wrap gap-4 items-center justify-center shadow-lg border border-white border-opacity-20 animate-[slideUp_0.8s_ease]">
+            <div class="flex items-center gap-2"><label for="lesson"
+                    class="font-semibold text-indigo-600 dark:text-indigo-400">レッスン:</label><select id="lesson"
+                    class="p-2.5 rounded-lg border-2 border-indigo-300 dark:border-indigo-500 bg-white dark:bg-gray-700 text-base cursor-pointer transition-all duration-300 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-800"></select>
+            </div>
+            <div class="flex items-center gap-2"><label for="mode"
+                    class="font-semibold text-indigo-600 dark:text-indigo-400">練習モード:</label><select id="mode"
+                    class="p-2.5 rounded-lg border-2 border-indigo-300 dark:border-indigo-500 bg-white dark:bg-gray-700 text-base cursor-pointer transition-all duration-300 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-800">
+                    <option value="reading">読み方</option>
+                    <option value="meaning">意味</option>
+                    <option value="usage">使い方</option>
+                    <option value="mixed">ミックス</option>
+                </select></div>
+            <div class="flex items-center gap-2"><label for="difficulty"
+                    class="font-semibold text-indigo-600 dark:text-indigo-400">問題数:</label><select id="difficulty"
+                    class="p-2.5 rounded-lg border-2 border-indigo-300 dark:border-indigo-500 bg-white dark:bg-gray-700 text-base cursor-pointer transition-all duration-300 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-800">
+                    <option selected value="5">5問</option>
+                    <option value="10">10問</option>
+                    <option value="20">20問</option>
+                    <option value="30">30問</option>
+                    <option value="all">全て</option>
+                </select></div>
+            <div class="flex flex-wrap gap-2 justify-center"><button id="startQuizButton"
+                    class="btn relative overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-semibold py-3 px-6 rounded-full cursor-pointer text-base shadow-lg transition-all duration-300 hover:translate-y-[-2px] hover:shadow-xl active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed"
+                    disabled>練習開始</button><button id="wrongWordsOpenBtn"
+                    class="btn relative overflow-hidden bg-gradient-to-br from-yellow-500 to-orange-500 text-white font-semibold py-3 px-6 rounded-full cursor-pointer text-base shadow-lg transition-all duration-300 hover:translate-y-[-2px] hover:shadow-xl active:translate-y-0">📚
+                    错词本</button></div>
+        </div>
+        <div id="quizContainer"
+            class="controls dark:bg-slate-800 rounded-2xl p-10 shadow-lg min-h-[400px] animate-[fadeIn_0.5s_ease]">
+        </div>
+    </main>
+    <div id="keyboardHint"
+        class="fixed bottom-5 right-5 bg-gray-800 text-white py-2.5 px-4 rounded-xl text-xs opacity-0 transition-opacity duration-300 z-50">
+        キーボード: 1-4で選択 | ←/→で切替</div>
+    <div id="messageBox" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] hidden">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
+            <p id="messageBoxText" class="text-lg font-semibold mb-6 text-gray-800 dark:text-gray-200"></p>
+            <div id="messageBoxButtons" class="flex justify-center gap-4"></div>
+        </div>
+    </div>
+    <div id="wrongWordsModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] hidden">
+        <div
+            class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col">
+            <header class="p-6 border-b border-gray-200 dark:border-slate-700 flex-shrink-0">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-2xl font-bold text-slate-800 dark:text-slate-200 flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-indigo-500" viewBox="0 0 20 20"
+                            fill="currentColor">
+                            <path
+                                d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 005.5 16c1.255 0 2.443-.29 3.5-.804V4.804zM11 4.804A7.968 7.968 0 0114.5 4c1.255 0 2.443.29 3.5.804v10A7.969 7.969 0 0114.5 16c-1.255 0-2.443-.29-3.5-.804V4.804z" />
+                        </svg>
+                        错词本管理
+                    </h3>
+                    <button id="wrongWordsCloseBtn"
+                        class="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-2xl transition-colors">✕</button>
+                </div>
+                <div class="flex mt-4" id="wrongWordsTabs">
+                    <button class="tab-button active" data-tab="wrong-list">错误列表</button>
+                    <button class="tab-button" data-tab="statistics">统计分析</button>
+                </div>
+            </header>
+            <main class="overflow-y-auto flex-grow bg-slate-50 dark:bg-slate-900">
+                <div id="tab-wrong-list" class="tab-content p-6">
+                    <div class="flex flex-wrap items-center justify-between mb-6 gap-4">
+                        <div class="flex items-center gap-4"><select id="wrongWordFilter"
+                                class="p-2 border border-gray-300 rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"></select><select
+                                id="wrongWordSort"
+                                class="p-2 border border-gray-300 rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"></select>
+                        </div>
+                        <div class="flex space-x-2"><button id="startWrongWordsQuizBtn"
+                                class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-2"><svg
+                                    xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                    fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                                        clip-rule="evenodd" />
+                                </svg>开始学习</button><button id="exportWrongWordsBtn"
+                                class="bg-white hover:bg-gray-100 dark:bg-slate-700 dark:hover:bg-slate-600 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-200 font-semibold px-4 py-2 rounded-lg transition-colors">导出</button><button
+                                id="clearAllWrongWordsBtn"
+                                class="bg-white hover:bg-gray-100 dark:bg-slate-700 dark:hover:bg-slate-600 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-200 font-semibold px-4 py-2 rounded-lg transition-colors">清空</button>
+                        </div>
+                    </div>
+                    <div id="wrongWordsList" class="space-y-4"></div>
+                </div>
+                <!-- ▼▼▼ [改动] 新的统计页面HTML结构 ▼▼▼ -->
+                <div id="tab-statistics" class="tab-content hidden p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="statistics-grid">
+                        <!-- 总体统计 -->
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm">
+                            <h4 class="flex items-center text-lg font-bold text-indigo-600 dark:text-indigo-400 mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                                总体统计
+                            </h4>
+                            <div id="overallStats" class="grid grid-cols-2 gap-4 text-center">
+                                <!-- JS will populate this area -->
+                            </div>
+                        </div>
+
+                        <!-- 掌握度分布 -->
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm">
+                            <h4 class="flex items-center text-lg font-bold text-purple-600 dark:text-purple-400 mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                掌握度分布
+                            </h4>
+                            <div id="masteryStats" class="space-y-4">
+                                <!-- JS will populate this area with progress bars -->
+                            </div>
+                        </div>
+
+                        <!-- 难度分布 (横跨两栏) -->
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm md:col-span-2">
+                            <h4 class="flex items-center text-lg font-bold text-yellow-600 dark:text-yellow-400 mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                难度分布
+                            </h4>
+                            <div id="difficultyStats" class="space-y-3">
+                                <!-- JS will populate this area with bar charts -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- ▲▲▲ [改动结束] ▲▲▲ -->
+            </main>
+        </div>
+    </div>
+    <template id="wrongWordCardTemplate">
+        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-lg transition-shadow duration-300 p-5 space-y-4"
+            data-word="">
+            <div class="flex justify-between items-start gap-4">
+                <div class="space-y-1 min-w-0">
+                    <h4 class="text-2xl font-bold text-slate-800 dark:text-slate-100 break-all" data-field="word"></h4>
+                    <p class="text-md text-slate-500 dark:text-slate-400 break-words" data-field="reading"></p>
+                </div>
+                <div class="flex-shrink-0 flex flex-col items-end gap-y-2">
+                    <div class="flex items-center gap-2"><select data-action="update-mastery" title="设置掌握度"
+                            class="font-semibold border-none text-xs rounded-full pl-3 pr-8 py-1 appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-800 focus:ring-indigo-400"
+                            data-field="masterySelect"></select><button data-action="delete" title="删除这个单词"
+                            class="w-8 h-8 flex items-center justify-center rounded-md bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors"><svg
+                                xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                    clip-rule="evenodd" />
+                            </svg></button></div><select data-action="update-difficulty" title="设置难度"
+                        class="font-semibold border-none text-xs rounded-full pl-3 pr-8 py-1 appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-800 focus:ring-indigo-400"
+                        data-field="difficultySelect"></select>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <p class="text-slate-700 dark:text-slate-300" data-field="meaning"></p>
+                <div class="p-3 bg-indigo-50/70 dark:bg-slate-700/50 rounded-lg border-l-4 border-indigo-400 dark:border-indigo-500 hidden"
+                    data-field="exampleContainer">
+                    <p class="text-slate-600 dark:text-slate-300" data-field="example"></p>
+                </div>
+            </div>
+            <div
+                class="flex justify-between items-center text-xs text-slate-400 dark:text-slate-500 pt-3 border-t border-slate-100 dark:border-slate-700/50">
+                <span data-field="wrongCount"></span><span data-field="lastWrongDate"></span></div>
+        </div>
+    </template>
+
+    <!-- JavaScript -->
+    <script>
+        const WrongWordsManager = {
+            app: null,
+            init(appInstance) { this.app = appInstance; this.bindEvents(); },
+            bindEvents() {
+                const { elements } = this.app;
+                elements.wrongWordsOpenBtn.addEventListener('click', () => this.openModal());
+                elements.wrongWordsCloseBtn.addEventListener('click', () => this.closeModal());
+                elements.wrongWordsTabs.addEventListener('click', e => { const button = e.target.closest('.tab-button'); if (button) { elements.wrongWordsTabs.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active')); button.classList.add('active'); const tabId = button.dataset.tab; elements.wrongWordsModal.querySelectorAll('.tab-content').forEach(content => { content.id === `tab-${tabId}` ? content.classList.remove('hidden') : content.classList.add('hidden'); }); } });
+                elements.wrongWordFilter.addEventListener('change', () => this.renderList());
+                elements.wrongWordSort.addEventListener('change', () => this.renderList());
+                elements.startWrongWordsQuizBtn.addEventListener('click', () => this.startQuiz());
+                elements.exportWrongWordsBtn.addEventListener('click', () => this.export());
+                elements.clearAllWrongWordsBtn.addEventListener('click', async () => { const confirmed = await this.app.showConfirmation('确定要清空所有错词记录吗？此操作不可撤销。'); if (confirmed) { this.save([]); this.renderList(); this.renderStatistics(); } });
+                elements.wrongWordsListContainer.addEventListener('change', e => { this.handleCardInteraction(e.target, 'change'); });
+                elements.wrongWordsListContainer.addEventListener('click', async e => { await this.handleCardInteraction(e.target.closest('[data-action]'), 'click'); });
+            },
+            openModal() { this.app.elements.wrongWordsModal.classList.remove('hidden'); this.app.elements.body.style.overflow = 'hidden'; this.populateFilters(); this.renderList(); this.renderStatistics(); },
+            closeModal() { this.app.elements.wrongWordsModal.classList.add('hidden'); this.app.elements.body.style.overflow = ''; },
+            getStorageKey() { return `${this.app.constants.WRONG_WORDS_KEY_PREFIX}${this.app.state.currentJLPTLevel}`; },
+            get() { return JSON.parse(localStorage.getItem(this.getStorageKey())) || []; },
+            save(words) { localStorage.setItem(this.getStorageKey(), JSON.stringify(words)); },
+            addOrUpdate(vocab, mode) { let words = this.get(); const existing = words.find(w => w.word === vocab.w); const now = new Date().toISOString(); if (existing) { existing.wrongCount++; existing.lastWrongTimestamp = now; existing.history.push({ timestamp: now, mode }); if (existing.masteryLevel === 'familiar') existing.masteryLevel = 'learning'; } else { words.push({ word: vocab.w, vocabObject: vocab, wrongCount: 1, firstWrongTimestamp: now, lastWrongTimestamp: now, masteryLevel: 'new', difficulty: 3, history: [{ timestamp: now, mode }] }); } this.save(words); },
+            async handleCardInteraction(target, eventType) { if (!target) return; const action = target.dataset.action; const wordValue = target.closest('[data-word]')?.dataset.word; if (!wordValue || !action) return; let words = this.get(); const wordIndex = words.findIndex(w => w.word === wordValue); if (wordIndex === -1) return; let needsUIRefresh = false; if (eventType === 'change') { if (action === 'update-mastery') words[wordIndex].masteryLevel = target.value; if (action === 'update-difficulty') words[wordIndex].difficulty = parseInt(target.value); needsUIRefresh = true; } else if (eventType === 'click' && action === 'delete') { const confirmed = await this.app.showConfirmation(`确定要从错词本中删除 "${wordValue}" 吗？`); if (confirmed) { words.splice(wordIndex, 1); needsUIRefresh = true; } } if (needsUIRefresh) { this.save(words); this.renderList(); this.renderStatistics(); } },
+            populateFilters() { this.app.elements.wrongWordFilter.innerHTML = `<option value="all">全部错误单词</option><option value="new">新错误</option><option value="learning">学习中</option><option value="familiar">熟悉</option><option value="difficulty-1">难度 1</option><option value="difficulty-2">难度 2</option><option value="difficulty-3">难度 3</option><option value="difficulty-4">难度 4</option><option value="difficulty-5">难度 5</option>`; this.app.elements.wrongWordSort.innerHTML = `<option value="recent">最近错误</option><option value="frequency">错误频率</option><option value="difficulty">难度</option><option value="alphabetical">字母顺序</option>`; },
+            getFilteredAndSorted() { const filter = this.app.elements.wrongWordFilter.value; const sort = this.app.elements.wrongWordSort.value; let words = this.get(); words = words.filter(word => { if (filter === 'all') return true; if (['new', 'learning', 'familiar'].includes(filter)) return word.masteryLevel === filter; if (filter.startsWith('difficulty-')) return word.difficulty === parseInt(filter.split('-')[1]); return true; }); return words.sort((a, b) => { switch (sort) { case 'recent': return new Date(b.lastWrongTimestamp) - new Date(a.lastWrongTimestamp); case 'frequency': return b.wrongCount - a.wrongCount; case 'difficulty': return b.difficulty - a.difficulty; case 'alphabetical': return (a.vocabObject.r || a.vocabObject.w).localeCompare(b.vocabObject.r || b.vocabObject.w, 'ja'); default: return 0; } }); },
+            renderList() { const listContainer = this.app.elements.wrongWordsListContainer; const cardTemplate = this.app.elements.wrongWordCardTemplate; const words = this.getFilteredAndSorted(); listContainer.innerHTML = ''; if (words.length === 0) { listContainer.innerHTML = `<div class="text-center text-gray-500 dark:text-gray-400 py-16"><svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg><h3 class="mt-2 text-lg font-medium text-gray-900 dark:text-gray-200">没有符合条件的单词</h3><p class="mt-1 text-sm text-gray-500 dark:text-gray-400">请更改筛选条件，或去练习添加新的错词吧！</p></div>`; return; } const masteryLevels = { new: '新错误', learning: '学习中', familiar: '熟悉' }; const masteryStyles = { new: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300', learning: 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300', familiar: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' }; const difficultyStyles = { 1: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300', 2: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300', 3: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-400', 4: 'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-400', 5: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300' }; const fragment = document.createDocumentFragment(); words.forEach(word => { const card = cardTemplate.content.cloneNode(true); const cardRoot = card.querySelector('[data-word]'); cardRoot.dataset.word = word.word; card.querySelector('[data-field="word"]').textContent = word.vocabObject.w; card.querySelector('[data-field="reading"]').textContent = word.vocabObject.r; card.querySelector('[data-field="meaning"]').textContent = `含义：${word.vocabObject.c || word.vocabObject.m}`; const exampleContainer = card.querySelector('[data-field="exampleContainer"]'); const exampleText = word.vocabObject.e || word.vocabObject.u; if (exampleText) { card.querySelector('[data-field="example"]').textContent = `“${exampleText}”`; exampleContainer.classList.remove('hidden'); } const masterySelect = card.querySelector('[data-field="masterySelect"]'); masterySelect.innerHTML = Object.entries(masteryLevels).map(([k, v]) => `<option value="${k}" ${word.masteryLevel === k ? 'selected' : ''}>${v}</option>`).join(''); masterySelect.className += ` ${masteryStyles[word.masteryLevel] || ''}`; const difficultySelect = card.querySelector('[data-field="difficultySelect"]'); difficultySelect.innerHTML = [1, 2, 3, 4, 5].map(d => `<option value="${d}" ${word.difficulty === d ? 'selected' : ''}>难度 ${d}</option>`).join(''); difficultySelect.className += ` ${difficultyStyles[word.difficulty] || ''}`; card.querySelector('[data-field="wrongCount"]').textContent = `错误 ${word.wrongCount} 次`; card.querySelector('[data-field="lastWrongDate"]').textContent = `上次 ${new Date(word.lastWrongTimestamp).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}`; fragment.appendChild(card); }); listContainer.appendChild(fragment); },
+
+            // ▼▼▼ [改动] 新的renderStatistics函数 ▼▼▼
+            renderStatistics() {
+                const words = this.get();
+                const { overallStatsContainer, masteryStatsContainer, difficultyStatsContainer } = this.app.elements;
+                const statsGrid = document.getElementById('statistics-grid');
+
+                // 清空容器
+                overallStatsContainer.innerHTML = '';
+                masteryStatsContainer.innerHTML = '';
+                difficultyStatsContainer.innerHTML = '';
+
+                if (words.length === 0) {
+                    const noDataMsg = `<div class="md:col-span-2 text-center text-gray-500 dark:text-gray-400 py-16">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <h3 class="mt-2 text-lg font-medium text-gray-900 dark:text-gray-200">暂无统计数据</h3>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">开始练习以生成您的学习报告吧！</p>
+                </div>`;
+                    statsGrid.innerHTML = noDataMsg;
+                    return;
+                } else if (statsGrid.children.length < 3) {
+                    // 如果没有数据时清空了，现在需要恢复结构
+                    statsGrid.innerHTML = `
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm">
+                        <h4 class="flex items-center text-lg font-bold text-indigo-600 dark:text-indigo-400 mb-4"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>总体统计</h4>
+                        <div id="overallStats" class="grid grid-cols-2 gap-4 text-center"></div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm">
+                        <h4 class="flex items-center text-lg font-bold text-purple-600 dark:text-purple-400 mb-4"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>掌握度分布</h4>
+                        <div id="masteryStats" class="space-y-4"></div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm md:col-span-2">
+                        <h4 class="flex items-center text-lg font-bold text-yellow-600 dark:text-yellow-400 mb-4"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>难度分布</h4>
+                        <div id="difficultyStats" class="space-y-3"></div>
+                    </div>
+                `;
+                    // 重新获取容器引用
+                    this.app.elements.overallStatsContainer = document.getElementById('overallStats');
+                    this.app.elements.masteryStatsContainer = document.getElementById('masteryStats');
+                    this.app.elements.difficultyStatsContainer = document.getElementById('difficultyStats');
+                }
+
+                // 1. 渲染总体统计
+                const totalWords = words.length;
+                const totalMistakes = words.reduce((sum, word) => sum + word.wrongCount, 0);
+                this.app.elements.overallStatsContainer.innerHTML = `
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">总计独特单词</p>
+                    <p class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">${totalWords}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">总计错误次数</p>
+                    <p class="text-3xl font-bold text-red-500 dark:text-red-400">${totalMistakes}</p>
+                </div>
+            `;
+
+                // 2. 渲染掌握度分布
+                const masteryCounts = words.reduce((acc, word) => { acc[word.masteryLevel] = (acc[word.masteryLevel] || 0) + 1; return acc; }, { new: 0, learning: 0, familiar: 0 });
+                const masteryInfo = {
+                    new: { label: '新错误', color: 'bg-blue-500', count: masteryCounts.new || 0 },
+                    learning: { label: '学习中', color: 'bg-purple-500', count: masteryCounts.learning || 0 },
+                    familiar: { label: '熟悉', color: 'bg-green-500', count: masteryCounts.familiar || 0 },
+                };
+
+                this.app.elements.masteryStatsContainer.innerHTML = Object.values(masteryInfo).map(item => {
+                    const percentage = totalWords > 0 ? (item.count / totalWords) * 100 : 0;
+                    return `
+                    <div>
+                        <div class="flex justify-between mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <span>${item.label}</span>
+                            <span>${item.count} 个</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                            <div class="${item.color} h-2.5 rounded-full" style="width: ${percentage}%"></div>
+                        </div>
+                    </div>
+                `;
+                }).join('');
+
+                // 3. 渲染难度分布
+                const difficultyCounts = words.reduce((acc, word) => { acc[word.difficulty] = (acc[word.difficulty] || 0) + 1; return acc; }, {});
+                const maxDifficultyCount = Math.max(...Object.values(difficultyCounts), 1);
+
+                this.app.elements.difficultyStatsContainer.innerHTML = [1, 2, 3, 4, 5].map(level => {
+                    const count = difficultyCounts[level] || 0;
+                    const percentage = (count / maxDifficultyCount) * 100;
+                    return `
+                    <div class="flex items-center gap-4">
+                        <span class="w-16 text-sm font-medium text-gray-600 dark:text-gray-400 text-right">难度 ${level}</span>
+                        <div class="flex-grow bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+                            <div class="bg-yellow-400 dark:bg-yellow-500 h-4 rounded-full text-xs font-bold text-slate-800 flex items-center justify-end pr-2 transition-all duration-500" style="width: ${percentage}%">
+                                ${count > 0 ? count : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                }).join('');
+            },
+            // ▲▲▲ [改动结束] ▲▲▲
+
+            startQuiz() { const wordsToPractice = this.getFilteredAndSorted(); if (wordsToPractice.length === 0) { this.app.showMessageBox("没有符合当前筛选条件的错词可供练习。"); return; } this.closeModal(); this.app.initializeAndRunQuiz(wordsToPractice.map(item => item.vocabObject), 'mixed'); },
+            export() { const words = this.getFilteredAndSorted(); if (words.length === 0) { this.app.showMessageBox('没有可导出的错词。'); return; } let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; csvContent += "单词,假名,含义,错误次数,难度,掌握度,首次错误时间,上次错误时间\n"; words.forEach(word => { const row = [`"${word.word}"`, `"${word.vocabObject.r}"`, `"${(word.vocabObject.c || word.vocabObject.m).replace(/"/g, '""')}"`, word.wrongCount, word.difficulty, word.masteryLevel, `"${new Date(word.firstWrongTimestamp).toLocaleString()}"`, `"${new Date(word.lastWrongTimestamp).toLocaleString()}"`].join(','); csvContent += row + "\n"; }); const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", `wrong_words_${this.app.state.currentJLPTLevel}_${new Date().toISOString().split('T')[0]}.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link); },
+        };
+
+        const VocabularyApp = {
+            state: { /* state a-z */ },
+            constants: {
+                WRONG_WORDS_KEY_PREFIX: 'wrongWordsNotebook_',
+                SWIPE_THRESHOLD: 50,
+                CLASSES: { HIDDEN: 'hidden', ACTIVE: 'active', IMMERSIVE: 'immersive-active', DARK: 'dark' }
+            },
+            elements: {},
+            init() {
+                Object.assign(this.state, { allVocabulary: {}, currentQuiz: [], currentQuestion: 0, score: 0, streak: 0, maxStreak: 0, selectedAnswer: null, startTime: null, questionStartTime: null, totalTime: 0, wrongAnswers: [], answerLog: [], maxQuestionReachedInSession: 0, isInputLocked: false, currentJLPTLevel: 'N2', touchstartX: 0, touchstartY: 0, timerInterval: null, nextQuestionTimeoutId: null, sessionHintShown: false, });
+                this.cacheDOMElements();
+                this.bindEvents();
+                this.renderWelcomeMessage();
+                this.initializeTheme();
+                this.initializeAppBasedOnURL();
+                WrongWordsManager.init(this);
+                if (WrongWordsManager.get().length === 0) {
+                    WrongWordsManager.addOrUpdate({ w: "植物", r: "しょくぶつ", c: "植物", m: "植物", u: "私たちは貴重な植物を守らなければならない", e: "私たちは貴重な植物を守らなければならない" }, "meaning");
+                }
+            },
+            cacheDOMElements() {
+                this.elements = { body: document.body, mainTitle: document.getElementById('mainTitle'), themeToggleBtn: document.getElementById('themeToggleBtn'), header: document.querySelector('.header'), controls: document.querySelector('.controls'), quizContainer: document.getElementById('quizContainer'), startQuizButton: document.getElementById('startQuizButton'), lessonSelect: document.getElementById('lesson'), modeSelect: document.getElementById('mode'), difficultySelect: document.getElementById('difficulty'), keyboardHint: document.getElementById('keyboardHint'), messageBox: document.getElementById('messageBox'), messageBoxText: document.getElementById('messageBoxText'), messageBoxButtons: document.getElementById('messageBoxButtons'), wrongWordsModal: document.getElementById('wrongWordsModal'), wrongWordsOpenBtn: document.getElementById('wrongWordsOpenBtn'), wrongWordsCloseBtn: document.getElementById('wrongWordsCloseBtn'), wrongWordsTabs: document.getElementById('wrongWordsTabs'), wrongWordsListContainer: document.getElementById('wrongWordsList'), wrongWordFilter: document.getElementById('wrongWordFilter'), wrongWordSort: document.getElementById('wrongWordSort'), startWrongWordsQuizBtn: document.getElementById('startWrongWordsQuizBtn'), exportWrongWordsBtn: document.getElementById('exportWrongWordsBtn'), clearAllWrongWordsBtn: document.getElementById('clearAllWrongWordsBtn'), overallStatsContainer: document.getElementById('overallStats'), masteryStatsContainer: document.getElementById('masteryStats'), difficultyStatsContainer: document.getElementById('difficultyStats'), };
+                this.elements.wrongWordCardTemplate = document.getElementById('wrongWordCardTemplate');
+            },
+            bindEvents() {
+                this.elements.themeToggleBtn.addEventListener('click', () => this.toggleTheme());
+                this.elements.startQuizButton.addEventListener('click', () => this.startQuiz());
+                document.addEventListener('keydown', (e) => this.handleKeyDown(e));
+                this.elements.quizContainer.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: false });
+                this.elements.quizContainer.addEventListener('touchmove', (e) => this.handleTouchMove(e), { passive: false });
+                this.elements.quizContainer.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: false });
+            },
+            submitAnswer(selectedIndex) {
+                if (this.state.isInputLocked) return;
+                this.state.isInputLocked = true;
+                clearInterval(this.state.timerInterval);
+                const question = this.state.currentQuiz[this.state.currentQuestion];
+                const isCorrect = question.options[selectedIndex].correct;
+                const timeSpent = Math.floor((Date.now() - this.state.questionStartTime) / 1000);
+                this.state.answerLog.push({ questionIndex: this.state.currentQuestion, selectedOptionIndex: selectedIndex, isCorrect, timeSpent });
+                if (isCorrect) {
+                    this.state.score++; this.state.streak++; if (this.state.streak > this.state.maxStreak) this.state.maxStreak = this.state.streak;
+                } else { this.state.streak = 0; this.state.wrongAnswers.push({ question: question.question, yourAnswer: question.options[selectedIndex].text, correctAnswer: question.correctAnswer, vocab: question.vocab }); WrongWordsManager.addOrUpdate(question.vocab, question.mode); }
+                this.showQuestion();
+                this.state.nextQuestionTimeoutId = setTimeout(() => this.nextQuestion(), isCorrect ? 150 : 2000);
+            },
+            showMessageBox(message) {
+                this.elements.messageBoxText.textContent = message;
+                this.elements.messageBoxButtons.innerHTML = `<button id="messageBoxOkBtn" class="btn bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-semibold py-2 px-4 rounded-full">OK</button>`;
+                this.elements.messageBox.classList.remove(this.constants.CLASSES.HIDDEN);
+                document.getElementById('messageBoxOkBtn').addEventListener('click', () => this.hideMessageBox(), { once: true });
+                document.getElementById('messageBoxOkBtn').focus();
+            },
+            hideMessageBox() { this.elements.messageBox.classList.add(this.constants.CLASSES.HIDDEN); },
+            showConfirmation(message) {
+                return new Promise(resolve => {
+                    this.elements.messageBoxText.textContent = message;
+                    this.elements.messageBoxButtons.innerHTML = `<button id="confirmBtn" class="btn bg-gradient-to-br from-red-500 to-orange-500 text-white font-semibold py-2 px-4 rounded-full">确定</button><button id="cancelBtn" class="btn-secondary">取消</button>`;
+                    this.elements.messageBox.classList.remove(this.constants.CLASSES.HIDDEN);
+                    const confirmBtn = document.getElementById('confirmBtn');
+                    const cancelBtn = document.getElementById('cancelBtn');
+                    const cleanup = () => { this.hideMessageBox(); confirmBtn.removeEventListener('click', onConfirm); cancelBtn.removeEventListener('click', onCancel); };
+                    const onConfirm = () => { cleanup(); resolve(true); };
+                    const onCancel = () => { cleanup(); resolve(false); };
+                    confirmBtn.addEventListener('click', onConfirm);
+                    cancelBtn.addEventListener('click', onCancel);
+                    confirmBtn.focus();
+                });
+            },
+            async initializeAppBasedOnURL() { const urlParams = new URLSearchParams(window.location.search); const levelParam = urlParams.get('level'); const allowedLevels = ['n1', 'n2', 'n3']; let determinedLevel = 'n2'; if (levelParam && allowedLevels.includes(levelParam.toLowerCase())) { determinedLevel = levelParam.toLowerCase(); } else if (levelParam) { console.warn(`Invalid level parameter '${levelParam}' provided. Defaulting to N2.`); } this.state.currentJLPTLevel = determinedLevel.toUpperCase(); const titlePrefix = this.state.currentJLPTLevel === 'N2' ? '新無敵緑宝書' : '語彙練習'; const pageTitle = `${titlePrefix}${this.state.currentJLPTLevel}単語練習`; const headerTitle = `${titlePrefix}${this.state.currentJLPTLevel}語彙練習`; document.title = pageTitle; this.elements.mainTitle.textContent = headerTitle; const jsonFileName = `./${determinedLevel}.json`; await this.loadVocabularyData(jsonFileName); },
+            async loadVocabularyData(fileName) { try { this.elements.startQuizButton.disabled = true; this.elements.startQuizButton.textContent = 'データ読込中...'; const response = await fetch(fileName); if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`); this.state.allVocabulary = await response.json(); console.log(`Vocabulary for ${this.state.currentJLPTLevel} loaded successfully`); this.populateLessonSelect(); this.elements.startQuizButton.disabled = false; this.elements.startQuizButton.textContent = '練習開始'; } catch (error) { console.error(`Could not load vocabulary from ${fileName}:`, error); this.showMessageBox(`語彙データ(${fileName})の読み込みに失敗しました。`); this.elements.startQuizButton.textContent = '読込失敗'; } },
+            populateLessonSelect() { const select = this.elements.lessonSelect; select.innerHTML = '<option value="all">全てのレッスン</option>'; const lessonKeys = Object.keys(this.state.allVocabulary).sort((a, b) => parseInt(a.replace('lesson', '')) - parseInt(b.replace('lesson', ''))); lessonKeys.forEach(key => { const option = document.createElement('option'); option.value = key; option.textContent = key.replace('lesson', 'レッスン'); select.appendChild(option); }); },
+            startQuiz() { if (Object.keys(this.state.allVocabulary).length === 0) { this.showMessageBox(`語彙データがまだ読み込まれていません。`); return; } const selectedLesson = this.elements.lessonSelect.value; const selectedMode = this.elements.modeSelect.value; const difficulty = this.elements.difficultySelect.value; let sourceVocab = (selectedLesson === 'all') ? Object.values(this.state.allVocabulary).flat() : this.state.allVocabulary[selectedLesson] || []; sourceVocab = sourceVocab.filter(item => typeof item === 'object' && item !== null && item.w); if (sourceVocab.length === 0) { this.showMessageBox(`選択したレッスンに単語がありません。`); return; } const questionCount = (difficulty === 'all') ? sourceVocab.length : Math.min(sourceVocab.length, parseInt(difficulty)); const quizVocab = this.shuffleArray(sourceVocab).slice(0, questionCount); this.initializeAndRunQuiz(quizVocab, selectedMode); },
+            initializeAndRunQuiz(vocabList, mode) { if (!vocabList || vocabList.length === 0) { this.showMessageBox('練習用の単語がありません。'); return; } this.showLoadingScreen(); setTimeout(() => { const generatedQuestions = this.generateQuestions(vocabList, mode); if (generatedQuestions.length === 0) { this.showMessageBox('選択した単語で問題を作成できませんでした。'); this.resetQuiz(); return; } Object.assign(this.state, { currentQuiz: generatedQuestions, currentQuestion: 0, score: 0, streak: 0, maxStreak: 0, wrongAnswers: [], selectedAnswer: null, startTime: Date.now(), totalTime: 0, answerLog: [], maxQuestionReachedInSession: 0, }); this.elements.body.classList.add('quiz-mode-active'); this.elements.header.classList.add('hidden-during-quiz'); this.elements.controls.classList.add('hidden-during-quiz'); const qc = this.elements.quizContainer; qc.classList.remove('dark:bg-slate-800', 'p-10', 'shadow-lg'); qc.classList.add('immersive-active'); this.showKeyboardHint(); this.showQuestion(); }, 50); },
+            generateQuestions(vocabList, mode) { const allSourceVocabForOptions = Object.values(this.state.allVocabulary).flat(); const shuffledWrongOptionPool = this.shuffleArray(allSourceVocabForOptions); let wrongOptionIndex = 0; const questions = vocabList.map(vocab => { const currentMode = mode === 'mixed' ? this.shuffleArray(['reading', 'meaning', 'usage'])[0] : mode; let question; if (currentMode === 'reading' && vocab.w !== vocab.r) { question = this.generateSingleQuestion(vocab, 'reading', 'w', 'r', shuffledWrongOptionPool, wrongOptionIndex); } else if (currentMode === 'usage' && vocab.u) { question = this.generateSingleQuestion(vocab, 'usage', 'u', 'w', shuffledWrongOptionPool, wrongOptionIndex); } else { question = this.generateSingleQuestion(vocab, 'meaning', `${vocab.w} ${vocab.w !== vocab.r ? `(${vocab.r})` : ''}`, 'c', shuffledWrongOptionPool, wrongOptionIndex, 'm'); } if (question) wrongOptionIndex = (wrongOptionIndex + 3) % shuffledWrongOptionPool.length; return question; }).filter(Boolean); return this.shuffleArray(questions); },
+            generateSingleQuestion(vocab, mode, questionKeyOrText, answerKey, shuffledPool, poolIndex, fallbackAnswerKey) { const questionText = vocab[questionKeyOrText] || questionKeyOrText; const correctAnswer = vocab[answerKey] || vocab[fallbackAnswerKey]; const wrongOptions = []; let currentIndex = poolIndex; while (wrongOptions.length < 3 && currentIndex < shuffledPool.length) { const potentialWrongVocab = shuffledPool[currentIndex]; if (potentialWrongVocab) { const potentialWrongAnswer = potentialWrongVocab[answerKey] || potentialWrongVocab[fallbackAnswerKey]; if (potentialWrongAnswer !== correctAnswer && !wrongOptions.includes(potentialWrongAnswer)) { wrongOptions.push(potentialWrongAnswer); } } currentIndex++; } if (wrongOptions.length < 3) return null; const options = this.shuffleArray([{ text: correctAnswer, correct: true }, ...wrongOptions.map(text => ({ text, correct: false }))]); return { question: questionText, options, correctAnswer, vocab, mode }; },
+            showQuestion() { clearTimeout(this.state.nextQuestionTimeoutId); if (this.state.currentQuestion >= this.state.currentQuiz.length) { this.showFinalScore(); return; } const question = this.state.currentQuiz[this.state.currentQuestion]; const historyEntry = this.state.answerLog.find(log => log.questionIndex === this.state.currentQuestion); if (!historyEntry) this.state.questionStartTime = Date.now(); this.elements.quizContainer.innerHTML = this.createQuizHTML(question, historyEntry); this.bindQuizViewEvents(question, historyEntry); this.state.isInputLocked = false; },
+            createQuizHTML(question, historyEntry) { const progress = (this.state.currentQuestion / this.state.currentQuiz.length) * 100; const optionsHTML = question.options.map((option, index) => { let classes = 'option relative overflow-hidden border-2 p-3 md:p-5 rounded-xl cursor-pointer transition-all duration-300 text-base md:text-lg text-center text-gray-900 dark:text-gray-100 bg-white/80 dark:bg-gray-700/80 border-indigo-300 dark:border-indigo-600 disabled:opacity-70 disabled:cursor-not-allowed'; if (historyEntry) { classes += ' disabled:opacity-100'; if (option.correct) classes += ' !bg-green-500 !text-white !border-green-600'; if (!option.correct && index === historyEntry.selectedOptionIndex) classes += ' !bg-red-500 !text-white !border-red-600 animate-[incorrectShake_0.3s_ease]'; } return `<button class="${classes}" data-index="${index}" ${historyEntry ? 'disabled' : ''}><span class="font-bold mr-2 text-indigo-500 dark:text-indigo-300">${index + 1}.</span> ${option.text}</button>`; }).join(''); let feedbackHTML = ''; if (historyEntry && !historyEntry.isCorrect) { const detail = `${question.vocab.w} ${question.vocab.w !== question.vocab.r ? `(${question.vocab.r})` : ''} - ${question.vocab.c || question.vocab.m}`; feedbackHTML = `不正解。正解は“${question.correctAnswer}”。<br><small class="block mt-1 text-gray-700 dark:text-gray-300 opacity-85 text-sm md:text-base">${detail}</small>`; } return `<button class="exit-btn absolute top-3 right-3 w-10 h-10 bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 text-gray-700 dark:text-gray-300 flex items-center justify-center rounded-full text-xl font-semibold z-50 transition hover:scale-110 active:scale-95">✕</button><div class="mb-3 md:mb-8"><div class="flex justify-between mb-2 font-semibold text-indigo-600 dark:text-indigo-400"><span>${this.state.currentQuestion + 1} / ${this.state.currentQuiz.length}</span></div><div class="progress-bar w-full h-2.5 rounded-md overflow-hidden relative"><div class="progress-fill h-full rounded-md" style="width: ${progress}%"></div></div></div><div class="stats flex justify-between mb-3 md:mb-5 text-sm md:text-lg font-semibold flex-wrap gap-2"><span class="text-green-600 dark:text-green-400 flex items-center gap-2">✅ 正解: ${this.state.score}</span><span class="text-red-500 dark:text-red-400 flex items-center gap-2">🔥 連続: ${this.state.streak}</span><span class="text-orange-500 dark:text-orange-400 flex items-center gap-2">⏱️ 経過: <span id="timer">${historyEntry ? historyEntry.timeSpent : 0}</span>s</span></div><div class="question-area-wrapper"><div class="question-content-area"><div class="question text-3xl md:text-5xl mb-1 md:mb-2 font-semibold text-center text-gray-900 dark:text-white leading-tight" id="questionText">${question.question}</div><div id="exampleSentenceDisplay" class="text-gray-700 dark:text-gray-300 text-lg px-2"></div></div></div><div class="options grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3 md:gap-4"><div id="inlineFeedback" class="inline-feedback-area ${feedbackHTML ? 'show incorrect-inline' : ''}" aria-live="polite">${feedbackHTML}</div>${optionsHTML}</div>`; },
+            bindQuizViewEvents(question, historyEntry) { this.elements.quizContainer.querySelector('.exit-btn').addEventListener('click', () => this.resetQuiz()); if (question.vocab && (question.vocab.u || question.vocab.e)) { const questionTextEl = this.elements.quizContainer.querySelector('#questionText'); questionTextEl.style.cursor = 'pointer'; questionTextEl.title = 'クリックして例文を表示/非表示'; questionTextEl.addEventListener('click', () => { const sentenceDisplay = this.elements.quizContainer.querySelector('#exampleSentenceDisplay'); sentenceDisplay.textContent = `“${question.vocab.e || question.vocab.u}”`; sentenceDisplay.classList.toggle('visible'); }); } if (!historyEntry) { this.updateTimer(); this.elements.quizContainer.querySelector('.options').addEventListener('click', e => { const button = e.target.closest('.option'); if (button && !this.state.isInputLocked) this.submitAnswer(parseInt(button.dataset.index, 10)); }); } },
+            nextQuestion() { if (this.state.currentQuestion + 1 >= this.state.currentQuiz.length) { this.showFinalScore(); return; } this.state.currentQuestion++; if (this.state.currentQuestion > this.state.maxQuestionReachedInSession) { this.state.maxQuestionReachedInSession = this.state.currentQuestion; } this.showQuestion(); },
+            showFinalScore() { this.resetQuizInterface(); const { score, currentQuiz, maxStreak, wrongAnswers } = this.state; const totalQuestions = currentQuiz.length; const percentage = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0; const totalTime = Math.floor((Date.now() - this.state.startTime) / 1000); const avgTime = totalQuestions > 0 ? (totalTime / totalQuestions).toFixed(1) : 0; let message = '復習が必要です。', emoji = '📚'; if (percentage >= 90) { message = '素晴らしい！'; emoji = '🏆'; } else if (percentage >= 70) { message = 'よくできました！'; emoji = '🎉'; } else if (percentage >= 50) { message = 'もう少し頑張りましょう。'; emoji = '💪'; } const wrongAnswersHtml = wrongAnswers.length > 0 ? `<div class="wrong-answers-section mt-8 text-left animate-[slideUp_0.8s_ease]"><h3 class="text-center text-2xl font-bold mb-5 text-red-600 dark:text-red-400">${emoji} 復習が必要な単語 (${wrongAnswers.length}個)</h3><div class="wrong-answers-list max-h-80 overflow-y-auto bg-red-50 dark:bg-red-900/30 rounded-lg p-5 border border-red-200 dark:border-red-700">${wrongAnswers.map(wrong => `<div class="wrong-answer-item mb-4 p-4 bg-white dark:bg-gray-700 rounded-lg border-l-4 border-red-500 shadow-md"><div class="font-bold mb-2 text-gray-900 dark:text-gray-100 text-lg">${wrong.question}</div><div class="text-red-600 dark:text-red-400 mb-1">❌ あなたの回答: ${wrong.yourAnswer}</div><div class="text-green-600 dark:text-green-400 mb-2">✅ 正解: ${wrong.correctAnswer}</div><div class="bg-indigo-100 dark:bg-indigo-900/40 p-2 rounded-md text-sm text-gray-700 dark:text-gray-300"><strong>${wrong.vocab.w}</strong> ${wrong.vocab.w !== wrong.vocab.r ? `(${wrong.vocab.r})` : ''}<br>意味: ${wrong.vocab.c || wrong.vocab.m}<br>元々の例文: ${wrong.vocab.e || 'なし'}</div></div>`).join('')}</div></div>` : ''; this.elements.quizContainer.innerHTML = `<div class="final-score text-center text-gray-900 dark:text-gray-100 text-3xl font-bold my-8 animate-[fadeIn_1s_ease]"><h2 class="text-4xl">${emoji} ${message}</h2><div class="text-indigo-600 dark:text-indigo-400 my-5 text-2xl">${score} / ${totalQuestions} 正解</div><div class="text-gray-600 dark:text-gray-400 text-xl mb-5">正答率: ${percentage}%</div><div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-8 text-base"><div class="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg"><div class="text-green-600 dark:text-green-400 font-bold">🔥 最高連続正解</div><div class="text-2xl font-bold">${maxStreak}</div></div><div class="bg-orange-50 dark:bg-orange-900/30 p-4 rounded-lg"><div class="text-orange-600 dark:text-orange-400 font-bold">⏱️ 総時間</div><div class="text-2xl font-bold">${Math.floor(totalTime / 60)}:${(totalTime % 60).toString().padStart(2, '0')}</div></div><div class="bg-indigo-50 dark:bg-indigo-900/30 p-4 rounded-lg"><div class="text-indigo-600 dark:text-indigo-400 font-bold">📊 平均時間</div><div class="text-2xl font-bold">${avgTime}秒</div></div></div>${wrongAnswersHtml}<div class="flex gap-4 justify-center mt-8 flex-wrap"><button id="restartQuizBtn" class="btn relative overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-semibold py-3 px-6 rounded-full cursor-pointer text-base shadow-lg transition-all duration-300 hover:translate-y-[-2px] hover:shadow-xl active:translate-y-0">もう一度</button><button id="reviewWrongBtn" class="btn secondary relative overflow-hidden bg-gradient-to-br from-red-500 to-orange-500 text-white font-semibold py-3 px-6 rounded-full cursor-pointer text-base shadow-lg transition-all duration-300 hover:translate-y-[-2px] hover:shadow-xl active:translate-y-0 ${wrongAnswers.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}" ${wrongAnswers.length === 0 ? 'disabled' : ''}>復習モード</button></div></div>`; this.elements.quizContainer.querySelector('#restartQuizBtn').addEventListener('click', () => this.startQuiz()); if (wrongAnswers.length > 0) { this.elements.quizContainer.querySelector('#reviewWrongBtn').addEventListener('click', () => this.reviewWrongAnswers()); } },
+            reviewWrongAnswers() { const reviewVocab = this.state.wrongAnswers.map(wrong => wrong.vocab).filter(Boolean); this.initializeAndRunQuiz(reviewVocab, 'mixed'); },
+            resetQuiz() { this.resetQuizInterface(); this.renderWelcomeMessage(); },
+            resetQuizInterface() { this.state.isInputLocked = false; clearTimeout(this.state.nextQuestionTimeoutId); clearInterval(this.state.timerInterval); this.elements.body.classList.remove('quiz-mode-active'); this.elements.header.classList.remove('hidden-during-quiz'); this.elements.controls.classList.remove('hidden-during-quiz'); const qc = this.elements.quizContainer; qc.classList.remove('immersive-active'); qc.classList.add('dark:bg-slate-800', 'p-10', 'shadow-lg'); this.hideKeyboardHint(); },
+            initializeTheme() { const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches; this.elements.body.classList.toggle('dark', isSystemDark); this.elements.themeToggleBtn.textContent = isSystemDark ? '☀️' : '🌙'; window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => { this.elements.body.classList.toggle('dark', e.matches); this.elements.themeToggleBtn.textContent = e.matches ? '☀️' : '🌙'; this.updateUIForThemeChange(); }); },
+            toggleTheme() { const isCurrentlyDark = this.elements.body.classList.toggle('dark'); this.elements.themeToggleBtn.textContent = isCurrentlyDark ? '☀️' : '🌙'; this.updateUIForThemeChange(); },
+            updateUIForThemeChange() { if (this.elements.body.classList.contains('quiz-mode-active')) { this.showQuestion(); } if (!this.elements.wrongWordsModal.classList.contains('hidden')) { WrongWordsManager.renderList(); WrongWordsManager.renderStatistics(); } },
+            renderWelcomeMessage() { this.elements.quizContainer.innerHTML = `<div class="welcome-message text-center"><h2 class="text-2xl font-bold mb-5 dark:text-white">練習モードを選んで開始してください</h2><p class="text-gray-600 dark:text-gray-300 text-lg mb-8 leading-relaxed"><strong>読み方:</strong> 漢字の読みを選択<br><strong>意味:</strong> 単語の意味を選択<br><strong>使い方:</strong> 文脈に合う単語を選択<br><strong>ミックス:</strong> 全種類の問題をランダムに</p><div class="features glass-morphism mt-8 p-5 rounded-xl"><h3 class="text-center text-xl font-semibold mb-4">✨ 主な機能</h3><ul class="text-left text-gray-600 dark:text-gray-300 leading-relaxed list-none list-inside"><li>🔀 選べる4つの練習モード</li><li>✨ 集中できる没入型UI</li><li>📚 高機能な復習ノート</li><li>📊 詳細な結果レポート</li><li>🎯 練習内容を自由に設定</li><li>⌨️ キーボード・スワイプ操作</li><li>🔥 連続正解カウンター</li><li>🌙 目に優しいダークモード</li><li>📤 データのCSVエクスポート</li></ul></div></div>`; },
+            showLoadingScreen() { this.elements.quizContainer.innerHTML = `<div class="flex flex-col items-center justify-center h-full"><div class="loading-spinner"></div><p class="mt-4 text-lg font-semibold text-gray-700 dark:text-gray-300">正在生成问题中...</p></div>`; },
+            showKeyboardHint() { if (this.state.sessionHintShown) return; const hint = this.elements.keyboardHint; hint.classList.add('opacity-100'); setTimeout(() => this.hideKeyboardHint(), 3000); this.state.sessionHintShown = true; },
+            hideKeyboardHint() { this.elements.keyboardHint.classList.remove('opacity-100'); },
+            updateTimer() { clearInterval(this.state.timerInterval); const timerElement = this.elements.quizContainer.querySelector('#timer'); if (timerElement && !this.state.answerLog.some(log => log.questionIndex === this.state.currentQuestion)) { this.state.timerInterval = setInterval(() => { const elapsed = Math.floor((Date.now() - this.state.questionStartTime) / 1000); if (timerElement) timerElement.textContent = elapsed; }, 1000); } },
+            handleKeyDown(e) { if (e.key === 'Escape') { if (!this.elements.wrongWordsModal.classList.contains('hidden')) { WrongWordsManager.closeModal(); return; } if (!this.elements.messageBox.classList.contains('hidden')) { this.hideMessageBox(); return; } if (this.elements.body.classList.contains('quiz-mode-active')) { this.elements.quizContainer.querySelector('.exit-btn')?.click(); return; } } const isModalOpen = !this.elements.messageBox.classList.contains('hidden') || !this.elements.wrongWordsModal.classList.contains('hidden'); if (isModalOpen || !this.elements.body.classList.contains('quiz-mode-active')) return; if (e.key === 'ArrowLeft') { this.navigateToPreviousQuestion(); return; } if (e.key === 'ArrowRight') { this.navigateToNextQuestion(); return; } if (this.state.isInputLocked) return; if (e.key >= '1' && e.key <= '4') { this.submitAnswer(parseInt(e.key) - 1); } },
+            navigateToPreviousQuestion() { if (this.state.currentQuestion > 0) { this.state.currentQuestion--; this.showQuestion(); } },
+            navigateToNextQuestion() { const hasBeenAnswered = this.state.answerLog.some(log => log.questionIndex === this.state.currentQuestion); if (hasBeenAnswered && this.state.currentQuestion < this.state.maxQuestionReachedInSession) { this.state.currentQuestion++; this.showQuestion(); } else if (hasBeenAnswered && this.state.currentQuestion < this.state.currentQuiz.length - 1 && this.state.currentQuestion === this.state.maxQuestionReachedInSession) { this.nextQuestion(); } },
+            handleTouchStart(e) { if (this.elements.body.classList.contains('quiz-mode-active')) { this.state.touchstartX = e.changedTouches[0].screenX; this.state.touchstartY = e.changedTouches[0].screenY; } },
+            handleTouchMove(e) { if (this.state.touchstartX !== 0 && Math.abs(e.changedTouches[0].screenX - this.state.touchstartX) > Math.abs(e.changedTouches[0].screenY - this.state.touchstartY)) e.preventDefault(); },
+            handleTouchEnd(e) { if (this.state.touchstartX === 0) return; const deltaX = e.changedTouches[0].screenX - this.state.touchstartX; if (Math.abs(deltaX) > this.constants.SWIPE_THRESHOLD) { if (deltaX < 0) this.navigateToNextQuestion(); else this.navigateToPreviousQuestion(); } this.state.touchstartX = 0; },
+            shuffleArray(array) { const shuffled = [...array]; for (let i = shuffled.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; } return shuffled; },
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            VocabularyApp.init();
+        });
+    </script>
+</body>
+
+</html>
