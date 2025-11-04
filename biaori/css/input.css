@@ -1,0 +1,935 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 1. Global Variables & Theming */
+:root {
+    --body-bg-gradient: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+    --body-text-color: #1f2937;
+    --glass-pane-bg-fallback: rgba(255, 255, 255, 0.45);
+    --glass-pane-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.3) 100%);
+    --glass-pane-border: rgba(255, 255, 255, 0.6);
+    --glass-pane-shadow: 0 8px 32px rgba(45, 55, 72, 0.15);
+    --glass-pane-inset-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.75), inset 0 -1px 1px rgba(255, 255, 255, 0.25);
+    --glass-pane-highlight: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.9) 50%, transparent 100%);
+    --glass-control-bg: rgba(255, 255, 255, 0.35);
+    --glass-control-border: rgba(255, 255, 255, 0.5);
+    --glass-control-hover-bg: rgba(255, 255, 255, 0.5);
+    --glass-control-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    --gradient-text-bg: linear-gradient(45deg, #6366f1, #8b5cf6, #ec4899);
+    --accent-color: #6366f1;
+    --progress-bar-bg: rgba(255, 255, 255, 0.4);
+    --progress-fill-bg: var(--gradient-text-bg);
+    --feedback-green-text: #15803d;
+    --feedback-red-text: #c2410c;
+    --selected-option-bg: var(--accent-color);
+    --selected-option-text: #ffffff;
+    --panel-handle-bg: rgba(0, 0, 0, 0.2);
+    --indicator-bg: rgba(255, 255, 255, 0.2);
+    --indicator-hover-bg: rgba(255, 255, 255, 0.35);
+}
+
+body.dark {
+    --body-bg-gradient: linear-gradient(135deg, #111827 0%, #1e293b 100%);
+    --body-text-color: #94a3b8;
+    --glass-pane-bg-fallback: rgba(30, 41, 59, 0.4);
+    --glass-pane-bg: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(17, 24, 39, 0.3) 100%);
+    --glass-pane-border: rgba(55, 65, 81, 0.5);
+    --glass-pane-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    --glass-pane-inset-shadow: inset 0 1px 1px rgba(71, 85, 105, 0.3), inset 0 -1px 1px rgba(0, 0, 0, 0.3);
+    --glass-pane-highlight: linear-gradient(90deg, transparent 0%, rgba(71, 85, 105, 0.2) 50%, transparent 100%);
+    --glass-control-bg: rgba(30, 41, 59, 0.4);
+    --glass-control-border: rgba(55, 65, 81, 0.6);
+    --glass-control-hover-bg: rgba(55, 65, 81, 0.5);
+    --glass-control-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --gradient-text-bg: linear-gradient(45deg,#3b82f6,#8b5cf6,#ec4899);
+    --progress-bar-bg: rgba(17, 24, 39, 0.8);
+    --feedback-green-text: #22c55e;
+    --feedback-red-text: #f87171;
+    --feedback-green-bg: #166534;
+    --feedback-red-bg: #991B1B;
+    --accent-color: #6366f1;
+    --selected-option-bg: #4f46e5;
+    --selected-option-text: #e0e7ff;
+    --panel-handle-bg: rgba(255, 255, 255, 0.2);
+    --indicator-bg: rgba(0, 0, 0, 0.25);
+    --indicator-hover-bg: rgba(0, 0, 0, 0.4);
+}
+
+/* Wrong Words Modal Specific Styles */
+#wrongWordsModal .wwm-select {
+    background-color: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 0.75rem;
+    padding: 0.5rem 2.5rem 0.5rem 1rem;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    font-weight: 500;
+}
+
+.dark #wrongWordsModal .wwm-select {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: #d1d5db;
+}
+
+.wwm-card-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.wwm-delete-btn {
+    background-color: transparent;
+    color: #9ca3af;
+    border-radius: 9999px;
+    transition: all 0.2s ease-in-out;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    margin-top: 0.12rem;
+}
+
+.wwm-delete-btn:hover {
+    background-color: #fee2e2;
+    color: #ef4444;
+}
+
+.dark .wwm-delete-btn:hover {
+    background-color: #452323;
+    color: #f87171;
+}
+
+/* General & Reusable Components */
+body {
+    font-family: 'Inter', 'Noto Sans JP', sans-serif;
+    background: var(--body-bg-gradient);
+    color: var(--body-text-color);
+    transition: background 0.5s ease, color 0.5s ease;
+    overscroll-behavior-y: contain;
+    min-height: 100vh;
+    position: relative;
+    background-attachment: fixed;
+}
+
+.glass-pane {
+    background-color: var(--glass-pane-bg-fallback);
+    border: 1px solid var(--glass-pane-border);
+    box-shadow: var(--glass-pane-shadow);
+    position: relative;
+}
+
+@supports (backdrop-filter: blur(1px)) {
+    .glass-pane {
+        background: var(--glass-pane-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: var(--glass-pane-shadow), var(--glass-pane-inset-shadow);
+    }
+}
+
+.glass-pane::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--glass-pane-highlight);
+}
+
+.glass-control {
+    border: 1px solid var(--glass-control-border);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    box-shadow: var(--glass-control-shadow);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.glass-control:active {
+    transform: translateY(0px) scale(0.98);
+}
+
+@media (hover: hover) {
+
+    .glass-control:hover,
+    .glass-control:focus-within {
+        border-color: var(--accent-color);
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.15), var(--glass-control-shadow);
+    }
+
+    body.dark .glass-control:hover,
+    body.dark .glass-control:focus-within {
+        box-shadow: 0 8px 25px rgba(129, 140, 248, 0.2), var(--glass-control-shadow);
+    }
+}
+
+.glass-control:focus,
+.glass-control:focus-within {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2), 0 8px 25px rgba(99, 102, 241, 0.15);
+}
+
+body.dark .glass-control:focus,
+body.dark .glass-control:focus-within {
+    box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.25), 0 8px 25px rgba(129, 140, 248, 0.2);
+}
+
+.custom-select-container {
+    position: relative;
+    min-width: 150px;
+}
+
+.multi-select-container {
+    min-width: 180px;
+}
+
+.custom-select-trigger {
+    position: relative;
+    padding-right: 3rem;
+    min-height: calc(1.5rem + 2 * 0.75rem);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    cursor: pointer;
+    white-space: nowrap;
+    color: var(--body-text-color);
+}
+
+.custom-select-text {
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.custom-select-trigger::after {
+    content: '▼';
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.3s ease;
+    color: var(--accent-color);
+    font-size: 0.75rem;
+}
+
+.custom-select-trigger.open::after {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.custom-select-dropdown {
+    position: absolute;
+    top: calc(100% + 0.25rem);
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid var(--glass-control-border);
+    border-radius: 0.5rem;
+    max-height: 250px;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+    transition: all 0.2s ease;
+    pointer-events: none;
+}
+
+body.dark .custom-select-dropdown {
+    background: rgba(30, 41, 59, 0.95);
+}
+
+.custom-select-dropdown.open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+.custom-select-option {
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--body-text-color);
+}
+
+.multi-select-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+body.dark .custom-select-option {
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+.custom-select-option:active {
+    transform: translateX(2px) scale(0.99);
+}
+
+@media (hover: hover) {
+    .custom-select-option:hover {
+        background: var(--accent-color);
+        color: white;
+        transform: translateX(2px);
+    }
+}
+
+.custom-select-option.selected {
+    background-color: var(--selected-option-bg);
+    color: var(--selected-option-text);
+    font-weight: 600;
+}
+
+.custom-select-option:last-child {
+    border-bottom: none;
+}
+
+.multi-select-checkbox {
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid var(--accent-color);
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    background: transparent;
+}
+
+.multi-select-checkbox.checked {
+    background: var(--accent-color);
+    color: white;
+}
+
+.multi-select-checkbox.checked::after {
+    content: '✓';
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.selected-count {
+    background: var(--gradient-text-bg);
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    margin-left: 0.5rem;
+    display: inline-block;
+    animation: pulse 2s infinite;
+}
+
+.gradient-text {
+    background: var(--gradient-text-bg);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* 添加这一个新规则 */
+body.quiz-mode-active {
+    overflow: hidden;
+    position: fixed;
+    /* 关键：固定位置，防止任何滚动 */
+    width: 100%;
+    height: 100%;
+}
+
+/* Quiz Mode Styles */
+body.quiz-mode-active .theme-toggle {
+    display: none;
+}
+
+.header.hidden-during-quiz,
+.controls.hidden-during-quiz {
+    display: none;
+}
+
+body.quiz-mode-active main.container {
+    padding: 0;
+    max-width: 100%;
+    height: 100dvh;
+    display: flex;
+}
+
+#quizContainer.immersive-active {
+    width: 100%;
+    height: 100dvh;
+    min-height: 100dvh;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: calc(env(safe-area-inset-top, 0px) + 1.5rem) 1rem calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+@supports (backdrop-filter: blur(1px)) {
+    #quizContainer.immersive-active {
+        background: color-mix(in srgb, var(--glass-pane-bg) 50%, transparent);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+    }
+}
+
+#quizContainer.immersive-active .question-area-wrapper {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-bottom: 7.5rem;
+    align-items: center;
+}
+
+#quizContainer.immersive-active .question-content-area {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+#quizContainer.immersive-active .options {
+    margin-top: auto;
+    padding-bottom: 2rem;
+    width: 100%;
+    position: relative;
+}
+
+.option {
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid var(--glass-control-border);
+    box-shadow: var(--glass-control-shadow);
+    background: var(--glass-control-bg);
+    transition: all 0.3s ease;
+}
+
+/* [优化] 启用 active 状态，提供更好的触摸反馈 */
+.option:active {
+    transform: translateY(0px) scale(0.98);
+}
+
+@media (hover: hover) {
+    .option:hover {
+        transform: translateY(-3px);
+        background: var(--glass-control-hover-bg);
+        box-shadow: 0 12px 35px rgba(99, 102, 241, 0.3);
+    }
+
+    body.dark .option:hover {
+        box-shadow: 0 12px 35px rgba(129, 140, 248, 0.3);
+    }
+}
+
+.inline-feedback-area {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 1.1em;
+    font-weight: 600;
+    padding: 8px 0;
+    margin-bottom: 1rem;
+    min-height: 4em;
+    line-height: 1.4;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.inline-feedback-area.show {
+    visibility: visible;
+    opacity: 1;
+}
+
+.inline-feedback-area.correct-inline {
+    color: var(--feedback-green-text);
+}
+
+.inline-feedback-area.incorrect-inline {
+    color: var(--feedback-red-text);
+}
+
+#exampleSentenceDisplay {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 0.5rem;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+    line-height: 1.6;
+}
+
+#exampleSentenceDisplay.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.option.correct-answer,
+.option.correct-answer:hover {
+    background: var(--feedback-green-bg);
+    color: #FFFFFF;
+    border-color: #15803d;
+    transform: translateY(0);
+    box-shadow: 0 0 15px rgba(74, 222, 128, 0.3);
+}
+
+.option.incorrect-answer,
+.option.incorrect-answer:hover {
+    background: var(--feedback-red-bg);
+    color: #FFFFFF;
+    border-color: #b91c1c;
+    transform: translateY(0);
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+    animation: incorrectShake 0.4s ease-in-out;
+}
+
+/* Modal & Pop-up Styles */
+#messageBox>div,
+#wrongWordsModal>div {
+    background: linear-gradient(135deg, hsla(220, 40%, 99%, 0.98), hsla(240, 30%, 97%, 0.95));
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+body.dark #messageBox>div,
+body.dark #wrongWordsModal>div {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(30, 41, 59, 0.8) 100%);
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(148, 163, 184, 0.5);
+}
+
+/* Progress Bar Styles */
+.progress-bar {
+    background: var(--progress-bar-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.progress-fill {
+    background: var(--progress-fill-bg);
+}
+
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-image: linear-gradient(-45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent);
+    background-size: 30px 30px;
+    animation: move 2s linear infinite;
+}
+
+/* [移除] 不再需要 tab-button 样式，因为相关功能已被删除 */
+
+/* Animations & Misc */
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.8;
+    }
+}
+
+@keyframes move {
+    from {
+        background-position: 0 0;
+    }
+
+    to {
+        background-position: 30px 30px;
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes incorrectShake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-4px);
+    }
+
+    75% {
+        transform: translateX(4px);
+    }
+}
+
+/* Animation for question transition */
+#question-content-area, #options {
+    transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+#question-content-area.fade-out, #options.fade-out {
+    opacity: 0;
+    transform: translateY(-15px);
+}
+
+.loading-spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border-left-color: var(--accent-color);
+    animation: spin 1s linear infinite;
+}
+
+@media (max-width: 768px) {
+    #keyboardHint {
+        display: none;
+    }
+}
+
+.z-index-elevated {
+    z-index: 10;
+}
+
+/* Detailed Info Panel Styles */
+@keyframes bounce-up {
+
+    0%,
+    100% {
+        transform: translateX(-50%) translateY(0);
+    }
+
+    50% {
+        transform: translateX(-50%) translateY(-8px);
+    }
+}
+
+#swipeUpIndicator {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    color: var(--accent-color);
+    animation: bounce-up 1.5s infinite;
+    z-index: 30;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    /* [优化] 移除了被注释掉的旧样式 */
+}
+
+@media (hover: hover) {
+    #swipeUpIndicator:hover {
+        animation-play-state: paused;
+        transform: translateX(-50%) translateY(-4px) scale(1.05);
+        background-color: var(--indicator-hover-bg);
+    }
+}
+
+#swipeUpIndicator:active {
+    transform: translateX(-50%) scale(0.95);
+    transition-duration: 0.1s;
+}
+
+#detailedInfoPanel {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 90%;
+    background: var(--body-bg-gradient);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border-top: 1px solid var(--glass-pane-border);
+    border-top-left-radius: 1.2rem;
+    border-top-right-radius: 1.2rem;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    z-index: 20;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 0.75rem 1.5rem calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
+}
+
+
+#detailedInfoPanel.visible {
+    transform: translateY(0);
+}
+
+#panelHandle {
+    width: 50px;
+    height: 6px;
+    background-color: var(--panel-handle-bg);
+    border-radius: 3px;
+    margin: 0.5rem auto 1.5rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background-color 0.3s ease;
+}
+
+.rounded-full{
+    border-radius: 9999px;
+}
+
+
+#messageBoxButtons button {
+    min-width: 100px;
+}
+
+
+/* Mobile Responsive Styles */
+@media (max-width: 640px) {
+    /* Modal adjustments */
+    #wrongWordsModal main {
+        padding: 0 1rem 1rem;
+    }
+    
+    /* Typography scale */
+    .text-4xl {
+        font-size: 2.25rem;
+        line-height: 2.5rem;
+    }
+    
+    .text-3xl {
+        font-size: 1.75rem;
+        line-height: 2rem;
+    }
+    
+    /* Control sizing */
+    .glass-control {
+        min-height: 44px;
+        padding: .75rem 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Small modal adjustments */
+    #wrongWordsModal > div {
+        margin: .5rem;
+        max-width: calc(100vw - 1rem);
+        max-height: calc(100vh - 1rem);
+    }
+    
+    /* Typography scale for small screens */
+    #wrongWordsModal .text-xl,
+    .text-xl {
+        font-size: 1.125rem;
+        line-height: 1.75rem;
+    }
+    
+    .text-4xl {
+        font-size: 1.875rem;
+        line-height: 2.25rem;
+    }
+    
+    .text-3xl {
+        font-size: 1.5rem;
+        line-height: 2rem;
+    }
+    
+    .text-2xl {
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+    }
+    
+    .text-lg {
+        font-size: 1rem;
+        line-height: 1.5rem;
+    }
+    
+    /* Control and spacing adjustments */
+    .glass-control {
+        padding: .625rem .875rem;
+        font-size: .875rem;
+    }
+    
+    .p-8 { padding: 1.5rem; }
+    .p-10 { padding: 2rem; }
+    .mb-8 { margin-bottom: 1.5rem; }
+    .mb-5 { margin-bottom: 1rem; }
+    .gap-4 { gap: .75rem; }
+    
+    /* Quiz specific adjustments */
+    #quizContainer.immersive-active .question {
+        font-size: 1.875rem;
+        line-height: 2.25rem;
+    }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
+    .glass-control,
+    .glass-pane {
+        border-width: .5px;
+    }
+}
+
+/* 横屏模式优化 */
+@media (orientation: landscape) and (max-height: 600px) {
+    /* 保持主容器全屏专注体验，减少内边距节省空间 */
+    #quizContainer.immersive-active {
+        padding: .75rem 1rem .5rem;
+    }
+    
+    /* 优化题目区域布局，减少垂直空间浪费 */
+    #quizContainer.immersive-active .question-area-wrapper {
+        padding-bottom: 3rem;
+        gap: .75rem;
+    }
+    
+    /* 保持题目字体大小清晰可读 */
+    #quizContainer.immersive-active .question {
+        font-size: 2rem;
+        line-height: 2.25rem;
+        margin-bottom: .75rem;
+    }
+    
+    /* 保持选项按钮原来的排列方式，一行4个竖直排列 */
+    #quizContainer.immersive-active .options {
+        margin-top: 1rem;
+        padding-bottom: .75rem;
+        /* 保持原来的垂直排列，不使用网格布局 */
+    }
+    
+    /* 优化反馈区域位置，减少高度 */
+    .inline-feedback-area {
+        min-height: 2em;
+        margin-bottom: .375rem;
+        font-size: .95rem;
+        line-height: 1.3;
+    }
+    
+    /* 调整例句显示，更紧凑 */
+    #exampleSentenceDisplay {
+        display: none !important;
+    }
+    
+    
+    /* 隐藏键盘提示，节省空间 */
+    #keyboardHint {
+        display: none !important;
+    }
+    
+    /* 隐藏统计信息，节省空间 */
+    .stats {
+        display: none !important;
+    }
+
+    /* 确保滑动指示器不被遮挡 */
+    #swipeUpIndicator {
+        bottom: 6px;
+    }
+    
+    /* 详情面板在横屏时高度调整 */
+    #detailedInfoPanel {
+        height: 80%;
+        border-top-left-radius: .75rem;
+        border-top-right-radius: .75rem;
+    }
+    
+    /* 隐藏或缩小其他非关键元素 */
+    body.quiz-mode-active .theme-toggle {
+        transform: scale(0.8);
+    }
+}
+
+/* 超宽横屏设备特殊优化（如平板横屏） */
+@media (orientation: landscape) and (min-width: 768px) and (max-height: 600px) {
+    /* 更宽屏幕可以使用更多的水平空间 */
+    #quizContainer.immersive-active {
+        padding: 1rem 2rem .5rem;
+    }
+    
+    /* 题目可以保持较大字体 */
+    #quizContainer.immersive-active .question {
+        font-size: 2.25rem;
+        line-height: 2.5rem;
+    }
+    
+    
+    /* 反馈区域可以稍大一些 */
+    .inline-feedback-area {
+        font-size: 1rem;
+        min-height: 2.25em;
+    }
+    
+    /* 例句显示稍大 */
+    #exampleSentenceDisplay {
+        display: none !important;
+    }
+}
