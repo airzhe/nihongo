@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本語文法クエスト (终极优化版 - 无动画)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+        :root{--primary-color:#2F80ED;--n1-color:#E57373;--n2-color:#63C57B;--correct-color:#63C57B;--incorrect-color:#E57373;--highlight-color:#FFB74D;--review-color:#9b59b6;--bg-color:#F7F9FC;--text-color:#4A4A4A;--light-text-color:#8D99AE;--border-color:#E0E6ED;--white-color:#FFFFFF;}
+        body{font-family:'Noto Sans JP',sans-serif;background-color:var(--bg-color);color:var(--text-color);display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;padding:15px;box-sizing:border-box;}
+        #game-container{background-color:var(--white-color);padding:30px 40px;border-radius:16px;box-shadow:0 10px 40px rgba(41,50,65,0.08);width:100%;max-width:700px;text-align:center;}
+        h1{color:var(--primary-color);margin-bottom:5px;font-weight:700;font-size:2em;}
+        #subtitle{color:var(--light-text-color);margin-bottom:25px;font-size:0.9em;font-weight:500;}
+        .app-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px;padding-bottom:20px;margin-bottom:20px;border-bottom:1px solid var(--border-color);}
+        .header-left,.header-right{display:flex;align-items:center;gap:15px;flex-wrap:wrap;}
+        .control-group{display:flex;gap:8px;justify-content:center;}
+        .btn{background-color:transparent;border:1px solid var(--border-color);color:var(--light-text-color);padding:8px 18px;border-radius:20px;cursor:pointer;font-weight:700;font-size:.9em;}
+        .btn:disabled{opacity:.5;cursor:not-allowed;}
+        .custom-select-wrapper{position:relative;user-select:none;}
+        .custom-select-trigger{position:relative;display:flex;align-items:center;justify-content:space-between;padding:9px 20px;font-size:.95em;font-weight:700;color:var(--primary-color);background:var(--white-color);border:1px solid var(--border-color);border-radius:20px;cursor:pointer;}
+        .custom-select-trigger .arrow{height:6px;width:6px;margin-left:10px;transform:rotate(45deg);border-bottom:2px solid var(--primary-color);border-right:2px solid var(--primary-color);}
+        .custom-select-wrapper.open .custom-select-trigger .arrow{transform:rotate(225deg);}
+        .custom-select-options{position:absolute;display:block;top:100%;left:0;min-width:100%;border:1px solid var(--border-color);border-radius:10px;background:var(--white-color);margin-top:8px;box-shadow:0 5px 20px rgba(0,0,0,0.08);opacity:0;visibility:hidden;pointer-events:none;z-index:2;padding:5px;}
+        .custom-select-wrapper.open .custom-select-options{opacity:1;visibility:visible;pointer-events:auto;}
+        .custom-option{display:block;padding:10px 15px;font-size:.95em;font-weight:700;color:var(--text-color);cursor:pointer;border-radius:6px;text-align:left;white-space:nowrap;}
+        .custom-option:hover{background-color:#F7F9FC;}
+        .custom-option.selected{color:var(--white-color);background-color:var(--primary-color);}
+        .custom-select-wrapper.disabled,.control-group.disabled{opacity:.5;pointer-events:none;}
+        .level-btn.active{color:var(--white-color);border-width:1px;}
+        #filter-all.active{background-color:var(--primary-color);border-color:var(--primary-color);}
+        #filter-n2.active{background-color:var(--n2-color);border-color:var(--n2-color);}
+        #filter-n1.active{background-color:var(--n1-color);border-color:var(--n1-color);}
+        #review-btn:hover:not(:disabled){border-color:var(--review-color);}
+        #review-btn.active:hover{background-color:#8e44ad;border-color:#8e44ad;}
+        #review-btn.active{background-color:var(--review-color);border-color:var(--review-color);color:var(--white-color);}
+        #sentence-container{font-size:1.6em;margin:45px 0;line-height:1.7;color:#333;min-height:5em;}
+        #sentence-container .blank{font-weight:700;color:var(--incorrect-color);border-bottom:2px dashed var(--incorrect-color);padding:0 12px;}
+        #options-container{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:20px;}
+        .option-btn{display:flex;align-items:center;gap:15px;padding:15px;font-size:1.1em;background-color:var(--white-color);border:1px solid var(--border-color);border-radius:10px;cursor:pointer;font-weight:700;}
+        .option-btn:hover:not(.answered){border-color:var(--primary-color);background-color:#f8f9fa;}
+        .option-btn.answered{pointer-events:none;opacity:.85;}
+        .key-hint{font-size:.9em;font-weight:700;background-color:#F0F3F7;color:var(--light-text-color);border:1px solid var(--border-color);border-radius:6px;width:28px;height:28px;display:inline-flex;justify-content:center;align-items:center;flex-shrink:0;user-select:none;}
+        .option-text{flex-grow:1;text-align:left;color:var(--text-color);}
+        .option-btn.selected.incorrect{background-color:#FDECEA;border-color:var(--incorrect-color);}
+        .option-btn.correct{background-color:#E9F7EC;border-color:var(--correct-color);}
+        .option-btn.selected.incorrect .option-text,.option-btn.selected.incorrect .key-hint{color:var(--incorrect-color);}
+        .option-btn.correct .option-text,.option-btn.correct .key-hint{color:var(--correct-color);}
+        #feedback{margin-top:35px;padding:20px;border-radius:10px;text-align:left;font-size:1.05em;line-height:1.8;min-height:160px;background-color:#f8f9fa;border-left:5px solid var(--border-color);opacity:0;visibility:hidden;}
+        #feedback.visible{opacity:1;visibility:visible;}
+        #feedback.correct{border-left-color:var(--correct-color);}
+        #feedback.incorrect{border-left-color:var(--incorrect-color);}
+        #feedback-title{font-weight:700;font-size:1.3em;margin-bottom:15px;}
+        #feedback p{margin:10px 0;}
+        #feedback strong{color:#333;}
+        #feedback .highlight{background-color:var(--highlight-color);color:#fff;padding:2px 6px;border-radius:4px;font-weight:700;}
+        #next-btn-container{min-height:80px;display:flex;justify-content:center;align-items:center;}
+        #next-btn{padding:14px 40px;font-size:1.1em;font-weight:700;background-color:var(--correct-color);color:var(--white-color);border-radius:10px;border:none;outline:none;box-shadow:0 4px 15px rgba(99,197,123,.3);cursor:pointer;opacity:0;visibility:hidden;}
+        #next-btn.visible{opacity:1;visibility:visible;}
+        #next-btn:hover{background-color:#58b06a;}
+        #score{position:fixed;top:15px;right:15px;font-size:1.1em;font-weight:700;background-color:var(--white-color);padding:8px 16px;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,.1);color:#555;}
+        #notification{position:fixed;top:20px;left:50%;transform:translateX(-50%);background-color:#333;color:#fff;padding:12px 25px;border-radius:25px;box-shadow:0 4px 15px rgba(0,0,0,0.2);font-size:1em;font-weight:700;z-index:1000;opacity:0;pointer-events:none;}
+        #notification.visible{opacity:1;transform:translateX(-50%);}
+        @media (max-width:600px){body{padding:10px;}#game-container{padding:20px;}h1{font-size:1.8em;}.app-header{flex-direction:column;align-items:stretch;gap:15px;}.header-left,.header-right{justify-content:center;}#sentence-container{font-size:1.4em;margin:35px 0;}#options-container{grid-template-columns:1fr;}.option-btn{padding:12px 15px;font-size:1em;}#feedback{font-size:1em;padding:15px;min-height:150px;}#feedback-title{font-size:1.2em;}#score{font-size:1em;padding:6px 12px;top:10px;right:10px;}#notification{width:calc(100% - 40px);text-align:center;}}
+    </style>
+</head>
+<body>
+<!-- HTML and JavaScript part remains the same -->
+<div id="game-container">
+    <h1>日本語文法クエスト</h1>
+    <p id="subtitle">JLPT N1 & N2 Grammar Practice</p>
+    <header class="app-header">
+        <div class="header-left">
+            <div class="custom-select-wrapper">
+                <div id="custom-select-trigger" class="custom-select-trigger">
+                    <span>練習セット 1</span>
+                    <div class="arrow"></div>
+                </div>
+                <div id="custom-select-options" class="custom-select-options">
+                    <div class="custom-option" data-value="1">練習セット 1</div>
+                    <div class="custom-option" data-value="2">練習セット 2</div>
+                    <div class="custom-option" data-value="3">練習セット 3</div>
+                </div>
+            </div>
+            <div class="control-group" id="level-filter-group">
+                <button id="filter-all" class="btn level-btn active">All</button>
+                <button id="filter-n2" class="btn level-btn">N2</button>
+                <button id="filter-n1" class="btn level-btn">N1</button>
+            </div>
+        </div>
+        <div class="header-right">
+             <div class="control-group">
+                <button id="review-btn" class="btn">復習モード (0)</button>
+            </div>
+        </div>
+    </header>
+    <div id="sentence-container">練習セットを読み込み中...</div>
+    <div id="options-container"></div>
+    <div id="feedback"></div>
+    <div id="next-btn-container">
+        <button id="next-btn">次の問題 (Space)</button>
+    </div>
+</div>
+<div id="score">スコア: 0 / 0</div>
+<div id="notification"></div>
+
+<script>
+    // The JavaScript code does not need any changes.
+    // It remains the same as your original version.
+    let grammarData = [];
+    let dataByLevel = { N1: [], N2: [] };
+    let allAnswersPool = [];
+    let shuffledQuestionPool = [];
+    let currentQuestionIndex = 0;
+
+    const sentenceContainer = document.getElementById('sentence-container');
+    const optionsContainer = document.getElementById('options-container');
+    const feedbackEl = document.getElementById('feedback');
+    const nextBtn = document.getElementById('next-btn');
+    const scoreEl = document.getElementById('score');
+    const reviewBtn = document.getElementById('review-btn');
+    const levelFilterButtons = document.querySelectorAll('.level-btn');
+    const customSelectWrapper = document.querySelector('.custom-select-wrapper');
+    const customSelectTrigger = document.getElementById('custom-select-trigger');
+    const customSelectOptions = document.querySelectorAll('.custom-option');
+    const notificationEl = document.getElementById('notification');
+    let notificationTimeout;
+
+    // 预创建按钮元素以复用
+    const optionButtons = [];
+    const optionTextElements = [];
+    const keyHintElements = [];
+
+    let currentQuestion = {}, score = 0, totalQuestions = 0, isAnswered = false;
+    let mistakeIds = [];
+    let isReviewMode = false, currentLevel = 'All', currentSetId = '1', pausedState = null;
+
+    function showNotification(message) {
+        clearTimeout(notificationTimeout);
+        notificationEl.textContent = message;
+        notificationEl.classList.add('visible');
+        notificationTimeout = setTimeout(() => {
+            notificationEl.classList.remove('visible');
+        }, 2500);
+    }
+    
+    // 一次性初始化UI元素
+    function initUI() {
+        for (let i = 0; i < 4; i++) {
+            const button = document.createElement('button');
+            button.className = 'option-btn';
+            const keyHint = document.createElement('span');
+            keyHint.className = 'key-hint';
+            keyHint.textContent = i + 1;
+            const optionText = document.createElement('span');
+            optionText.className = 'option-text';
+            button.appendChild(keyHint);
+            button.appendChild(optionText);
+            optionsContainer.appendChild(button);
+            optionButtons.push(button);
+            keyHintElements.push(keyHint);
+            optionTextElements.push(optionText);
+        }
+    }
+
+    function getMistakeKey() { return `japaneseGrammarMistakes_set${currentSetId}`; }
+    function loadMistakes() { mistakeIds = JSON.parse(localStorage.getItem(getMistakeKey())) || []; }
+    function saveMistakes() { localStorage.setItem(getMistakeKey(), JSON.stringify(mistakeIds)); }
+    function shuffleArray(array) { 
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+    
+    function updateReviewButton() { 
+        reviewBtn.textContent = isReviewMode ? '通常モードに戻る' : `復習モード (${mistakeIds.length})`;
+        reviewBtn.disabled = mistakeIds.length === 0 && !isReviewMode;
+        reviewBtn.classList.toggle('active', isReviewMode);
+    }
+    
+    function updateScore() { 
+        scoreEl.style.display = isReviewMode ? 'none' : 'block';
+        if (!isReviewMode) {
+            scoreEl.textContent = `スコア: ${score} / ${totalQuestions}`;
+        }
+    }
+    
+    function updateUiForModeChange() { 
+        updateReviewButton();
+        updateScore();
+        customSelectWrapper.classList.toggle('disabled', isReviewMode);
+        document.getElementById('level-filter-group').classList.toggle('disabled', isReviewMode);
+        if (!isReviewMode) {
+            levelFilterButtons.forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`filter-${currentLevel.toLowerCase()}`).classList.add('active');
+        }
+    }
+    
+    function startNewQuiz() {
+        if (isReviewMode) {
+            const reversedIds = [...mistakeIds].reverse();
+            const grammarDataMap = new Map(grammarData.map(q => [q.id, q]));
+            shuffledQuestionPool = reversedIds.map(id => grammarDataMap.get(id)).filter(Boolean);
+        } else {
+            shuffledQuestionPool = (currentLevel === 'All') ? [...grammarData] : [...dataByLevel[currentLevel]];
+            shuffleArray(shuffledQuestionPool);
+        }
+        currentQuestionIndex = 0;
+        score = 0;
+        totalQuestions = 0;
+        updateScore();
+        displayNextQuestion();
+    }
+    
+    function setLevel(level, fromUrl = false) { 
+        if (currentLevel === level && !isReviewMode && !fromUrl) return;
+        currentLevel = level;
+        pausedState = null;
+        levelFilterButtons.forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`filter-${level.toLowerCase()}`).classList.add('active');
+        if (!fromUrl) updateURL();
+        startNewQuiz();
+    }
+
+    function toggleReviewMode() {
+        isReviewMode = !isReviewMode;
+        if (isReviewMode) {
+            if (mistakeIds.length === 0) {
+                showNotification("復習する問題がありません。");
+                isReviewMode = false;
+                return;
+            }
+            pausedState = { currentQuestion, shuffledQuestionPool, currentQuestionIndex, score, totalQuestions, currentLevel };
+            startNewQuiz();
+        } else {
+            if (pausedState) {
+                ({ currentQuestion, shuffledQuestionPool, currentQuestionIndex, score, totalQuestions, currentLevel } = pausedState);
+                renderQuestion(currentQuestion);
+                updateScore();
+                pausedState = null;
+            } else {
+                startNewQuiz();
+            }
+        }
+        updateUiForModeChange();
+    }
+    
+    function getDistractorOptions(correctAnswer) {
+        const distractors = new Set();
+        if (allAnswersPool.length < 4) { 
+            return allAnswersPool.filter(ans => ans !== correctAnswer);
+        }
+        let attempts = 0;
+        const maxAttempts = Math.min(allAnswersPool.length, 50);
+        while (distractors.size < 3 && attempts < maxAttempts) {
+            const randomIndex = Math.floor(Math.random() * allAnswersPool.length);
+            const potentialDistractor = allAnswersPool[randomIndex];
+            if (potentialDistractor !== correctAnswer) {
+                distractors.add(potentialDistractor);
+            }
+            attempts++;
+        }
+        return Array.from(distractors);
+    }
+    
+    // 优化的渲染函数：复用DOM元素
+    function renderQuestion(question) {
+        currentQuestion = question;
+        isAnswered = false;
+        
+        // 使用 requestAnimationFrame 确保在最佳时机更新
+        requestAnimationFrame(() => {
+            // 重置反馈和按钮状态
+            feedbackEl.classList.remove('visible', 'correct', 'incorrect');
+            nextBtn.classList.remove('visible');
+            optionsContainer.style.display = 'grid';
+
+            if (!question || !question.sentence_parts) {
+                sentenceContainer.innerHTML = "問題の読み込みに失敗しました。";
+                optionsContainer.style.display = 'none';
+                return;
+            }
+
+            // 更新句子
+            const [part1, part2] = question.sentence_parts;
+            sentenceContainer.innerHTML = `${part1}<span class="blank">＿＿＿</span>${part2}`;
+            
+            // 获取选项
+            const distractors = getDistractorOptions(question.grammar_answer);
+            const options = shuffleArray([question.grammar_answer, ...distractors]);
+            
+            // 批量更新按钮，减少重排
+            optionButtons.forEach((button, index) => {
+                if (options[index]) {
+                    // 重置类名和样式
+                    button.className = 'option-btn';
+                    button.style.display = '';
+                    
+                    // 更新数据和文本
+                    button.dataset.answer = options[index];
+                    optionTextElements[index].textContent = options[index];
+                } else {
+                    button.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    function displayNextQuestion() {
+        if (currentQuestionIndex >= shuffledQuestionPool.length) {
+            showNotification("全ての問題を一周しました！もう一度始めます。");
+            if (!isReviewMode) { 
+                shuffleArray(shuffledQuestionPool);
+            }
+            currentQuestionIndex = 0;
+        }
+        const nextQuestion = shuffledQuestionPool[currentQuestionIndex];
+        if (!nextQuestion) {
+            sentenceContainer.innerHTML = isReviewMode ? "復習する問題がありません。" : "このレベルには問題がありません。";
+            optionsContainer.style.display = 'none';
+            return;
+        }
+        currentQuestionIndex++;
+        renderQuestion(nextQuestion);
+    }
+
+    function checkAnswer(selectedAnswer, selectedButton) {
+        if (isAnswered) return;
+        isAnswered = true;
+        
+        // 批量更新所有按钮状态
+        optionButtons.forEach(btn => btn.classList.add('answered'));
+        
+        if (!isReviewMode) totalQuestions++;
+        
+        const isCorrect = currentQuestion.grammar_answer === selectedAnswer;
+        const [part1, part2] = currentQuestion.sentence_parts;
+        const fullSentenceHTML = `${part1}<span class="highlight">${currentQuestion.grammar_answer}</span>${part2}`;
+        const feedbackHTML = `<p><strong>文法：</strong> 「${currentQuestion.grammar_display}」</p><p><strong>接続：</strong> ${currentQuestion.connection}</p><p><strong>例文：</strong> ${fullSentenceHTML}</p>`;
+
+        if (isCorrect) {
+            if (!isReviewMode) score++;
+            feedbackEl.className = 'correct visible';
+            feedbackEl.innerHTML = `<div id="feedback-title">正解</div>${feedbackHTML}`;
+            selectedButton.classList.add('correct');
+            
+            // 从错误列表中移除
+            const index = mistakeIds.indexOf(currentQuestion.id);
+            if (index > -1) {
+                mistakeIds.splice(index, 1);
+                requestIdleCallback(() => {
+                    saveMistakes();
+                    updateReviewButton();
+                });
+            }
+        } else {
+            feedbackEl.className = 'incorrect visible';
+            feedbackEl.innerHTML = `<div id="feedback-title">不正解</div>${feedbackHTML}`;
+            selectedButton.classList.add('selected', 'incorrect');
+            
+            // 高亮正确答案
+            optionButtons.forEach(btn => {
+                if (btn.dataset.answer === currentQuestion.grammar_answer) {
+                    btn.classList.add('correct');
+                }
+            });
+            
+            // 添加到错误列表
+            const existingIndex = mistakeIds.indexOf(currentQuestion.id);
+            if (existingIndex > -1) {
+                mistakeIds.splice(existingIndex, 1);
+            }
+            mistakeIds.push(currentQuestion.id);
+            requestIdleCallback(() => {
+                saveMistakes();
+                updateReviewButton();
+            });
+        }
+        
+        if (!isReviewMode) updateScore();
+        nextBtn.classList.add('visible');
+        nextBtn.focus();
+    }
+
+    function handleKeyPress(e) {
+        if (document.activeElement.tagName === 'BUTTON' || document.activeElement.tagName === 'SELECT') return;
+        const key = e.key;
+        
+        if (isAnswered) {
+            if (key === ' ' || key === 'Enter') {
+                e.preventDefault();
+                displayNextQuestion();
+            }
+            return;
+        }
+        
+        const numKey = parseInt(key);
+        if (!isNaN(numKey) && numKey >= 1 && numKey <= 4) {
+            const button = optionButtons[numKey - 1];
+            if (button && button.style.display !== 'none' && !button.classList.contains('answered')) {
+                e.preventDefault();
+                checkAnswer(button.dataset.answer, button);
+            }
+        }
+    }
+    
+    function loadSet(setId, onSetLoadedCallback) {
+        currentSetId = setId;
+        const oldScript = document.getElementById('grammar-data-script');
+        if (oldScript) oldScript.remove();
+        
+        const script = document.createElement('script');
+        script.id = 'grammar-data-script';
+        script.src = setId === '1' ? './grammar-data.js' : 
+                     setId === '2' ? './grammar-data-set2.js' : './grammar-data-set3.js';
+        
+        script.onload = () => {
+            // 创建索引和答案池
+            dataByLevel = { N1: [], N2: [] };
+            const uniqueAnswers = new Set();
+            grammarData.forEach(item => {
+                if (dataByLevel[item.level]) {
+                    dataByLevel[item.level].push(item);
+                }
+                uniqueAnswers.add(item.grammar_answer);
+            });
+            allAnswersPool = Array.from(uniqueAnswers);
+            
+            loadMistakes();
+            updateReviewButton();
+            if (onSetLoadedCallback) onSetLoadedCallback();
+        };
+        
+        script.onerror = () => {
+            sentenceContainer.innerHTML = `エラー: 練習セット${setId}のデータファイルが見つかりません。<br><span style="font-size: 0.7em; color: var(--light-text-color);">${script.src} を確認してください。</span>`;
+            optionsContainer.style.display = 'none';
+        };
+        
+        document.body.appendChild(script);
+    }
+    
+    function updateURL() {
+        if (isReviewMode) return;
+        const params = new URLSearchParams();
+        params.set('set', currentSetId);
+        if (currentLevel !== 'All') params.set('level', currentLevel);
+        window.location.hash = params.toString();
+    }
+
+    // 事件监听器
+    nextBtn.addEventListener('click', displayNextQuestion);
+    reviewBtn.addEventListener('click', toggleReviewMode);
+    document.addEventListener('keydown', handleKeyPress);
+    document.getElementById('filter-all').addEventListener('click', () => setLevel('All'));
+    document.getElementById('filter-n2').addEventListener('click', () => setLevel('N2'));
+    document.getElementById('filter-n1').addEventListener('click', () => setLevel('N1'));
+    
+    // 使用事件委托优化按钮点击
+    optionsContainer.addEventListener('click', (e) => {
+        if (isAnswered) return;
+        const clickedButton = e.target.closest('.option-btn');
+        if (clickedButton && clickedButton.style.display !== 'none') {
+            const selectedAnswer = clickedButton.dataset.answer;
+            checkAnswer(selectedAnswer, clickedButton);
+        }
+    });
+    
+    customSelectTrigger.addEventListener('click', () => customSelectWrapper.classList.toggle('open'));
+    window.addEventListener('click', (e) => {
+        if (!customSelectWrapper.contains(e.target)) {
+            customSelectWrapper.classList.remove('open');
+        }
+    });
+
+    customSelectOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            if (!option.classList.contains('selected')) {
+                const newSetId = option.getAttribute('data-value');
+                loadSet(newSetId, () => {
+                    setLevel('All', true);
+                    updateURL();
+                });
+            }
+            customSelectWrapper.classList.remove('open');
+        });
+    });
+
+    // 初始化
+    window.onload = () => {
+        initUI();
+
+        const params = new URLSearchParams(window.location.hash.substring(1));
+        const initialSet = params.get('set') || '1';
+        const initialLevel = params.get('level') || 'All';
+        
+        loadSet(initialSet, () => {
+            const triggerSpan = customSelectTrigger.querySelector('span');
+            const selectedOption = document.querySelector(`.custom-option[data-value="${initialSet}"]`);
+            if (selectedOption && triggerSpan) {
+                triggerSpan.textContent = selectedOption.textContent;
+                document.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
+                selectedOption.classList.add('selected');
+            }
+            setLevel(initialLevel, true);
+        });
+    };
+</script>
+
+</body>
+</html>
