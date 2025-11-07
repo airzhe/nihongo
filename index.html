@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本語学習ツール</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #50e3c2;
+            --n1-color: #e57373;
+            --n2-color: #63c57b;
+            --bg-color: #f4f7f9;
+            --card-bg-color: #ffffff;
+            --text-color: #333333;
+            --light-text-color: #777777;
+            --border-color: #e0e6ed;
+            --shadow-color: rgba(41, 50, 65, 0.1);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            text-align: center;
+        }
+
+        header {
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            color: var(--light-text-color);
+            font-weight: 500;
+        }
+
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .tool-card {
+            background-color: var(--card-bg-color);
+            border-radius: 16px;
+            box-shadow: 0 8px 30px var(--shadow-color);
+            padding: 30px;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+            border: 1px solid var(--border-color);
+            animation: fadeInUp 0.5s ease-out forwards;
+            opacity: 0;
+            /* Start hidden for animation */
+        }
+
+        /* Staggered animation delay */
+        .tool-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .tool-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .tool-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(41, 50, 65, 0.15);
+        }
+
+        .tool-icon {
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        .tool-icon svg {
+            width: 50px;
+            height: 50px;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .tool-card p {
+            font-size: 1em;
+            color: var(--light-text-color);
+            line-height: 1.6;
+            flex-grow: 1;
+            /* Pushes the buttons to the bottom */
+            margin-bottom: 25px;
+        }
+
+        /* New styles for level buttons */
+        .level-buttons {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .level-btn {
+            flex-grow: 1;
+            text-decoration: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 700;
+            color: #fff;
+            transition: transform 0.2s, opacity 0.2s;
+            border: none;
+        }
+
+        .level-btn:hover {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+
+        .n1-btn {
+            background-color: var(--n1-color);
+        }
+
+        .n2-btn {
+            background-color: var(--n2-color);
+        }
+
+        footer {
+            margin-top: 60px;
+            color: var(--light-text-color);
+            font-size: 0.9em;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>日本語学習ツール</h1>
+            <p>Your Personal Japanese Learning Hub</p>
+        </header>
+
+        <main class="tool-grid">
+            <!-- Card 1: Grammar -->
+            <a href="./grammar/" class="tool-card">
+                <div class="tool-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                    </svg>
+                </div>
+                <h2>文法クエスト</h2>
+                <p>JLPT N1 & N2の文法を練習するインタラクティブなクイズ。</p>
+            </a>
+            <a href="./lvbaoshu/?level=n2&lang=ja" class="tool-card">
+                <!-- Card 3: Lvbaoshu / Vocabulary Trainer with N1/N2 options -->
+                <div class="tool-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                    </svg>
+                </div>
+                <h2>緑宝書 単語練習</h2>
+                <p>JLPT各レベルの重要単語を効率的に暗記するためのツール。</p>
+            </a>
+
+            <!-- Card 2: Biaori / Standard Japanese Vocab -->
+            <a href="./biaori/?lang=ja" class="tool-card">
+                <div class="tool-icon" style="color: var(--secondary-color);">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                    </svg>
+                </div>
+                <!-- ★★★ ここが修正部分 ★★★ -->
+                <h2>標準日本語 単語練習</h2>
+                <p>「標準日本語」教材に基づいた語彙練習ツール。</p>
+                <!-- ★★★ ここまで ★★★ -->
+            </a>
+
+        </main>
+
+        <footer>
+            <p>&copy; 2025 Runner All Rights Reserved.</p>
+        </footer>
+    </div>
+</body>
+
+</html>

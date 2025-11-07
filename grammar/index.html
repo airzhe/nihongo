@@ -64,7 +64,6 @@
     </style>
 </head>
 <body>
-<!-- HTML and JavaScript part remains the same -->
 <div id="game-container">
     <h1>日本語文法クエスト</h1>
     <p id="subtitle">JLPT N1 & N2 Grammar Practice</p>
@@ -104,8 +103,6 @@
 <div id="notification"></div>
 
 <script>
-    // The JavaScript code does not need any changes.
-    // It remains the same as your original version.
     let grammarData = [];
     let dataByLevel = { N1: [], N2: [] };
     let allAnswersPool = [];
@@ -125,7 +122,6 @@
     const notificationEl = document.getElementById('notification');
     let notificationTimeout;
 
-    // 预创建按钮元素以复用
     const optionButtons = [];
     const optionTextElements = [];
     const keyHintElements = [];
@@ -142,8 +138,7 @@
             notificationEl.classList.remove('visible');
         }, 2500);
     }
-    
-    // 一次性初始化UI元素
+
     function initUI() {
         for (let i = 0; i < 4; i++) {
             const button = document.createElement('button');
@@ -165,28 +160,28 @@
     function getMistakeKey() { return `japaneseGrammarMistakes_set${currentSetId}`; }
     function loadMistakes() { mistakeIds = JSON.parse(localStorage.getItem(getMistakeKey())) || []; }
     function saveMistakes() { localStorage.setItem(getMistakeKey(), JSON.stringify(mistakeIds)); }
-    function shuffleArray(array) { 
+    function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [array[i], array[j]] = [array[j], array[i]];
         }
         return array;
     }
-    
-    function updateReviewButton() { 
+
+    function updateReviewButton() {
         reviewBtn.textContent = isReviewMode ? '通常モードに戻る' : `復習モード (${mistakeIds.length})`;
         reviewBtn.disabled = mistakeIds.length === 0 && !isReviewMode;
         reviewBtn.classList.toggle('active', isReviewMode);
     }
-    
-    function updateScore() { 
+
+    function updateScore() {
         scoreEl.style.display = isReviewMode ? 'none' : 'block';
         if (!isReviewMode) {
             scoreEl.textContent = `スコア: ${score} / ${totalQuestions}`;
         }
     }
-    
-    function updateUiForModeChange() { 
+
+    function updateUiForModeChange() {
         updateReviewButton();
         updateScore();
         customSelectWrapper.classList.toggle('disabled', isReviewMode);
@@ -196,7 +191,7 @@
             document.getElementById(`filter-${currentLevel.toLowerCase()}`).classList.add('active');
         }
     }
-    
+
     function startNewQuiz() {
         if (isReviewMode) {
             const reversedIds = [...mistakeIds].reverse();
@@ -212,8 +207,8 @@
         updateScore();
         displayNextQuestion();
     }
-    
-    function setLevel(level, fromUrl = false) { 
+
+    function setLevel(level, fromUrl = false) {
         if (currentLevel === level && !isReviewMode && !fromUrl) return;
         currentLevel = level;
         pausedState = null;
@@ -245,10 +240,10 @@
         }
         updateUiForModeChange();
     }
-    
+
     function getDistractorOptions(correctAnswer) {
         const distractors = new Set();
-        if (allAnswersPool.length < 4) { 
+        if (allAnswersPool.length < 4) {
             return allAnswersPool.filter(ans => ans !== correctAnswer);
         }
         let attempts = 0;
@@ -263,41 +258,27 @@
         }
         return Array.from(distractors);
     }
-    
-    // 优化的渲染函数：复用DOM元素
+
     function renderQuestion(question) {
         currentQuestion = question;
         isAnswered = false;
-        
-        // 使用 requestAnimationFrame 确保在最佳时机更新
         requestAnimationFrame(() => {
-            // 重置反馈和按钮状态
             feedbackEl.classList.remove('visible', 'correct', 'incorrect');
             nextBtn.classList.remove('visible');
             optionsContainer.style.display = 'grid';
-
             if (!question || !question.sentence_parts) {
                 sentenceContainer.innerHTML = "問題の読み込みに失敗しました。";
                 optionsContainer.style.display = 'none';
                 return;
             }
-
-            // 更新句子
             const [part1, part2] = question.sentence_parts;
             sentenceContainer.innerHTML = `${part1}<span class="blank">＿＿＿</span>${part2}`;
-            
-            // 获取选项
             const distractors = getDistractorOptions(question.grammar_answer);
             const options = shuffleArray([question.grammar_answer, ...distractors]);
-            
-            // 批量更新按钮，减少重排
             optionButtons.forEach((button, index) => {
                 if (options[index]) {
-                    // 重置类名和样式
                     button.className = 'option-btn';
                     button.style.display = '';
-                    
-                    // 更新数据和文本
                     button.dataset.answer = options[index];
                     optionTextElements[index].textContent = options[index];
                 } else {
@@ -306,11 +287,11 @@
             });
         });
     }
-    
+
     function displayNextQuestion() {
         if (currentQuestionIndex >= shuffledQuestionPool.length) {
             showNotification("全ての問題を一周しました！もう一度始めます。");
-            if (!isReviewMode) { 
+            if (!isReviewMode) {
                 shuffleArray(shuffledQuestionPool);
             }
             currentQuestionIndex = 0;
@@ -328,24 +309,17 @@
     function checkAnswer(selectedAnswer, selectedButton) {
         if (isAnswered) return;
         isAnswered = true;
-        
-        // 批量更新所有按钮状态
         optionButtons.forEach(btn => btn.classList.add('answered'));
-        
         if (!isReviewMode) totalQuestions++;
-        
         const isCorrect = currentQuestion.grammar_answer === selectedAnswer;
         const [part1, part2] = currentQuestion.sentence_parts;
         const fullSentenceHTML = `${part1}<span class="highlight">${currentQuestion.grammar_answer}</span>${part2}`;
         const feedbackHTML = `<p><strong>文法：</strong> 「${currentQuestion.grammar_display}」</p><p><strong>接続：</strong> ${currentQuestion.connection}</p><p><strong>例文：</strong> ${fullSentenceHTML}</p>`;
-
         if (isCorrect) {
             if (!isReviewMode) score++;
             feedbackEl.className = 'correct visible';
             feedbackEl.innerHTML = `<div id="feedback-title">正解</div>${feedbackHTML}`;
             selectedButton.classList.add('correct');
-            
-            // 从错误列表中移除
             const index = mistakeIds.indexOf(currentQuestion.id);
             if (index > -1) {
                 mistakeIds.splice(index, 1);
@@ -358,15 +332,11 @@
             feedbackEl.className = 'incorrect visible';
             feedbackEl.innerHTML = `<div id="feedback-title">不正解</div>${feedbackHTML}`;
             selectedButton.classList.add('selected', 'incorrect');
-            
-            // 高亮正确答案
             optionButtons.forEach(btn => {
                 if (btn.dataset.answer === currentQuestion.grammar_answer) {
                     btn.classList.add('correct');
                 }
             });
-            
-            // 添加到错误列表
             const existingIndex = mistakeIds.indexOf(currentQuestion.id);
             if (existingIndex > -1) {
                 mistakeIds.splice(existingIndex, 1);
@@ -377,7 +347,6 @@
                 updateReviewButton();
             });
         }
-        
         if (!isReviewMode) updateScore();
         nextBtn.classList.add('visible');
         nextBtn.focus();
@@ -386,7 +355,6 @@
     function handleKeyPress(e) {
         if (document.activeElement.tagName === 'BUTTON' || document.activeElement.tagName === 'SELECT') return;
         const key = e.key;
-        
         if (isAnswered) {
             if (key === ' ' || key === 'Enter') {
                 e.preventDefault();
@@ -394,7 +362,6 @@
             }
             return;
         }
-        
         const numKey = parseInt(key);
         if (!isNaN(numKey) && numKey >= 1 && numKey <= 4) {
             const button = optionButtons[numKey - 1];
@@ -404,19 +371,16 @@
             }
         }
     }
-    
+
     function loadSet(setId, onSetLoadedCallback) {
         currentSetId = setId;
         const oldScript = document.getElementById('grammar-data-script');
         if (oldScript) oldScript.remove();
-        
         const script = document.createElement('script');
         script.id = 'grammar-data-script';
-        script.src = setId === '1' ? './grammar-data.js' : 
+        script.src = setId === '1' ? './grammar-data.js' :
                      setId === '2' ? './grammar-data-set2.js' : './grammar-data-set3.js';
-        
         script.onload = () => {
-            // 创建索引和答案池
             dataByLevel = { N1: [], N2: [] };
             const uniqueAnswers = new Set();
             grammarData.forEach(item => {
@@ -426,26 +390,41 @@
                 uniqueAnswers.add(item.grammar_answer);
             });
             allAnswersPool = Array.from(uniqueAnswers);
-            
             loadMistakes();
             updateReviewButton();
             if (onSetLoadedCallback) onSetLoadedCallback();
         };
-        
         script.onerror = () => {
             sentenceContainer.innerHTML = `エラー: 練習セット${setId}のデータファイルが見つかりません。<br><span style="font-size: 0.7em; color: var(--light-text-color);">${script.src} を確認してください。</span>`;
             optionsContainer.style.display = 'none';
         };
-        
         document.body.appendChild(script);
     }
-    
+
     function updateURL() {
         if (isReviewMode) return;
         const params = new URLSearchParams();
         params.set('set', currentSetId);
         if (currentLevel !== 'All') params.set('level', currentLevel);
         window.location.hash = params.toString();
+    }
+
+    /**
+     * 更新自定义下拉菜单的显示状态
+     * @param {string} setId - 要设置为选中的练习集 ID
+     */
+    function updateCustomSelectUI(setId) {
+        const triggerSpan = customSelectTrigger.querySelector('span');
+        const selectedOption = document.querySelector(`.custom-option[data-value="${setId}"]`);
+        
+        if (selectedOption && triggerSpan) {
+            // 1. 更新触发器显示的文本
+            triggerSpan.textContent = selectedOption.textContent;
+            
+            // 2. 更新下拉选项的选中状态 (先移除所有，再给目标添加)
+            customSelectOptions.forEach(opt => opt.classList.remove('selected'));
+            selectedOption.classList.add('selected');
+        }
     }
 
     // 事件监听器
@@ -456,7 +435,6 @@
     document.getElementById('filter-n2').addEventListener('click', () => setLevel('N2'));
     document.getElementById('filter-n1').addEventListener('click', () => setLevel('N1'));
     
-    // 使用事件委托优化按钮点击
     optionsContainer.addEventListener('click', (e) => {
         if (isAnswered) return;
         const clickedButton = e.target.closest('.option-btn');
@@ -478,6 +456,7 @@
             if (!option.classList.contains('selected')) {
                 const newSetId = option.getAttribute('data-value');
                 loadSet(newSetId, () => {
+                    updateCustomSelectUI(newSetId); // 在这里调用 UI 更新函数
                     setLevel('All', true);
                     updateURL();
                 });
@@ -495,16 +474,11 @@
         const initialLevel = params.get('level') || 'All';
         
         loadSet(initialSet, () => {
-            const triggerSpan = customSelectTrigger.querySelector('span');
-            const selectedOption = document.querySelector(`.custom-option[data-value="${initialSet}"]`);
-            if (selectedOption && triggerSpan) {
-                triggerSpan.textContent = selectedOption.textContent;
-                document.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
-                selectedOption.classList.add('selected');
-            }
+            updateCustomSelectUI(initialSet); // 在这里调用 UI 更新函数
             setLevel(initialLevel, true);
         });
     };
+
 </script>
 
 </body>
