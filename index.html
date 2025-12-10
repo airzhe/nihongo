@@ -1,256 +1,620 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="zh-CN">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>日本語学習ツール</title>
+    <title>日语学习工具</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap');
 
         :root {
             --primary-color: #4a90e2;
             --secondary-color: #50e3c2;
-            --n1-color: #e57373;
-            --n2-color: #63c57b;
-            --bg-color: #f4f7f9;
+            
+            /* JLPT Colors - 调整为更柔和的马卡龙色系 */
+            --n1-bg: #ffebee; --n1-text: #ef5350; --n1-border: #ef5350;
+            --n2-bg: #e8f5e9; --n2-text: #66bb6a; --n2-border: #66bb6a;
+            --n3-bg: #fffde7; --n3-text: #fbc02d; --n3-border: #fbc02d;
+            --n4-bg: #fff3e0; --n4-text: #ffa726; --n4-border: #ffa726;
+            --n5-bg: #e3f2fd; --n5-text: #42a5f5; --n5-border: #42a5f5;
+            
+            --bg-color: #f7f9fc; /* 更干净的浅蓝灰背景 */
             --card-bg-color: #ffffff;
-            --text-color: #333333;
-            --light-text-color: #777777;
-            --border-color: #e0e6ed;
-            --shadow-color: rgba(41, 50, 65, 0.1);
+            --text-color: #2c3e50;
+            --light-text-color: #7f8c8d;
+            --border-color: #edf2f7;
+            --shadow-color: rgba(149, 157, 165, 0.1); /* 更现代的投影色 */
         }
 
-        *,
-        *::before,
-        *::after {
+        *, *::before, *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
         body {
-            font-family: 'Noto Sans JP', sans-serif;
+            font-family: 'Noto Sans SC', 'Noto Sans JP', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             display: flex;
             justify-content: center;
-            /* ★★★ ここが修正部分：デフォルトは垂直中央揃えに戻します ★★★ */
-            align-items: center; 
+            align-items: flex-start; 
             min-height: 100vh;
-            padding: 20px;
+            padding: 60px 20px;
+            position: relative;
         }
 
         .container {
             width: 100%;
-            max-width: 1000px;
+            max-width: 960px; /* 稍微收窄一点，阅读体验更好 */
             text-align: center;
         }
 
-        header {
-            margin-bottom: 50px;
+        /* --- Language Switcher --- */
+        .lang-switch {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 5px;
+            background: #fff;
+            padding: 4px;
+            border-radius: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
         }
 
-        h1 {
-            font-size: 2.5em;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 10px;
-        }
-
-        header p {
-            font-size: 1.1em;
+        .lang-btn {
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 0.85em;
             color: var(--light-text-color);
-            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 20px;
+            transition: all 0.2s;
+            font-weight: 600;
         }
 
+        .lang-btn:hover { color: var(--primary-color); }
+        .lang-btn.active { color: #fff; background-color: var(--primary-color); box-shadow: 0 2px 6px rgba(74, 144, 226, 0.3); }
+
+        header { margin-bottom: 60px; animation: fadeIn 0.8s ease-out; }
+        h1 { font-size: 2.2em; font-weight: 700; color: var(--primary-color); margin-bottom: 12px; letter-spacing: -0.5px; }
+        header p { font-size: 1.05em; color: var(--light-text-color); font-weight: 400; }
+
+        /* --- Tool Grid Styles (Top Cards) --- */
         .tool-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 25px;
+            margin-bottom: 70px;
         }
 
         .tool-card {
             background-color: var(--card-bg-color);
             border-radius: 16px;
-            box-shadow: 0 8px 30px var(--shadow-color);
-            padding: 30px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            padding: 40px 30px;
             text-decoration: none;
             color: inherit;
             display: flex;
             flex-direction: column;
             align-items: center;
-            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
-            border: 1px solid var(--border-color);
-            animation: fadeInUp 0.5s ease-out forwards;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+            border: 1px solid transparent; /* 预留边框位置避免抖动 */
+            animation: fadeInUp 0.6s ease-out forwards;
             opacity: 0;
-            /* Start hidden for animation */
         }
 
-        /* Staggered animation delay */
-        .tool-card:nth-child(1) {
-            animation-delay: 0.1s;
-        }
-
-        .tool-card:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .tool-card:nth-child(3) {
-            animation-delay: 0.3s;
-        }
+        .tool-card:nth-child(1) { animation-delay: 0.1s; }
+        .tool-card:nth-child(2) { animation-delay: 0.2s; }
+        .tool-card:nth-child(3) { animation-delay: 0.3s; }
 
         .tool-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 40px rgba(41, 50, 65, 0.15);
-        }
-        
-        /* Provides touch feedback on mobile */
-        .tool-card:active {
-            transform: scale(0.98);
-            box-shadow: 0 4px 15px var(--shadow-color);
+            transform: translateY(-6px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.05);
+            border-color: rgba(74, 144, 226, 0.1);
         }
 
-        .tool-icon {
-            margin-bottom: 20px;
-            color: var(--primary-color);
+        .tool-icon { margin-bottom: 25px; color: var(--primary-color); }
+        .tool-icon svg { width: 48px; height: 48px; stroke-width: 1.5px; }
+
+        .tool-card h2 { font-size: 1.25em; font-weight: 700; margin-bottom: 12px; color: var(--text-color); }
+        .tool-card p { font-size: 0.95em; color: var(--light-text-color); line-height: 1.6; text-align: center; }
+
+        /* --- Download Section Styles --- */
+        .download-section {
+            text-align: left;
+            max-width: 100%; /* 让它占满容器宽度 */
+            margin: 0 auto;
+            animation: fadeInUp 0.6s ease-out forwards;
+            animation-delay: 0.4s;
+            opacity: 0;
         }
 
-        .tool-icon svg {
-            width: 50px;
-            height: 50px;
-        }
-
-        h2 {
-            font-size: 1.5em;
+        /* 标题栏优化：使用伪元素制作圆角竖条 */
+        .section-title {
+            font-size: 1.4em;
             font-weight: 700;
-            margin-bottom: 10px;
+            color: var(--text-color);
+            margin-bottom: 25px;
+            position: relative;
+            padding-left: 20px; /* 留出位置给竖条 */
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
-        .tool-card p {
-            font-size: 1em;
-            color: var(--light-text-color);
-            line-height: 1.6;
-            flex-grow: 1;
-            margin-bottom: 0; /* Removed margin to align content better */
+        /* 那个绿色的圆角竖条 */
+        .section-title::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 6px;
+            height: 24px;
+            background-color: var(--secondary-color);
+            border-radius: 4px;
+        }
+
+        /* Accordion (折叠面板) 优化 */
+        .category-group {
+            background-color: var(--card-bg-color);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px var(--shadow-color);
+            overflow: hidden; /* 保证圆角不被子元素溢出遮挡 */
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .category-group[open] {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+            border-color: rgba(0,0,0,0.02);
+        }
+
+        /* 左侧彩色边框 */
+        .cat-n1 { border-left: 5px solid var(--n1-border); }
+        .cat-n2 { border-left: 5px solid var(--n2-border); }
+        .cat-n3 { border-left: 5px solid var(--n3-border); }
+        .cat-n4 { border-left: 5px solid var(--n4-border); }
+        .cat-n5 { border-left: 5px solid var(--n5-border); }
+
+        .category-header {
+            padding: 22px 28px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* 确保箭头在最右边 */
+            font-weight: 700;
+            font-size: 1.05em;
+            list-style: none;
+            background-color: #fff;
+            transition: background-color 0.2s;
+            user-select: none;
         }
         
-        footer {
-            margin-top: 60px;
-            color: var(--light-text-color);
-            font-size: 0.9em;
+        .category-header::-webkit-details-marker { display: none; }
+        .category-header:hover { background-color: #fafbfc; }
+
+        /* 标签 Badge 优化 */
+        .badge {
+            font-size: 0.75em;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 800;
+            margin-right: 12px;
+            display: inline-block;
+            min-width: 40px;
+            text-align: center;
         }
+        .badge-n1 { background: var(--n1-bg); color: var(--n1-text); }
+        .badge-n2 { background: var(--n2-bg); color: var(--n2-text); }
+        .badge-n3 { background: var(--n3-bg); color: var(--n3-text); }
+        .badge-n4 { background: var(--n4-bg); color: var(--n4-text); }
+        .badge-n5 { background: var(--n5-bg); color: var(--n5-text); }
+
+        .arrow-icon {
+            transition: transform 0.3s ease;
+            color: #bdc3c7;
+        }
+        .category-group[open] .arrow-icon { transform: rotate(180deg); }
+
+        /* 文件列表 */
+        .file-list {
+            list-style: none;
+            border-top: 1px solid var(--border-color);
+            background-color: #fff;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 28px;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+        }
+
+        .file-item:last-child { border-bottom: none; }
+        .file-item:hover { background-color: #f8faff; }
+
+        .file-info { display: flex; flex-direction: column; gap: 4px; }
+        
+        .file-name { 
+            font-size: 0.95em; 
+            font-weight: 600; 
+            color: var(--text-color); 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+        }
+
+        /* 那个小小的 azw3 标签 */
+        .file-ext { 
+            font-size: 0.7em; 
+            color: #95a5a6; 
+            border: 1px solid #e0e0e0; 
+            padding: 1px 5px; 
+            border-radius: 4px; 
+            background-color: #f9f9f9;
+            font-weight: normal;
+        }
+
+        .file-desc { font-size: 0.85em; color: var(--light-text-color); }
+
+        .dl-icon-btn {
+            color: var(--primary-color);
+            padding: 8px;
+            border-radius: 8px; /* 方圆形按钮 */
+            background-color: transparent;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dl-icon-btn:hover { background-color: #e3f2fd; transform: translateY(-1px); }
+        .dl-icon-btn svg { width: 22px; height: 22px; stroke-width: 2px; }
+
+        footer { margin-top: 80px; color: #a0a0a0; font-size: 0.9em; }
 
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         @media (max-width: 768px) {
-            body {
-                padding: 15px;
-                /* ★★★ ここが修正部分：モバイルでのみ上揃えにします ★★★ */
-                align-items: flex-start;
-            }
-
-            header {
-                margin-bottom: 40px;
-            }
-
-            h1 {
-                font-size: 2em;
-            }
-
-            header p {
-                font-size: 1em;
-            }
-            
-            .tool-grid {
-                gap: 20px;
-            }
-
-            .tool-card {
-                padding: 25px;
-            }
-
-            .tool-icon svg {
-                width: 40px;
-                height: 40px;
-            }
-
-            h2 {
-                font-size: 1.3em;
-            }
-
-            .tool-card p {
-                font-size: 0.95em;
-            }
-            
-            footer {
-                margin-top: 50px;
-            }
+            body { padding: 40px 15px; }
+            .lang-switch { top: 15px; right: 15px; }
+            .file-item { padding: 15px 20px; }
+            .category-header { padding: 18px 20px; }
+            .section-title { font-size: 1.3em; }
         }
     </style>
 </head>
 
 <body>
+    <!-- 语言切换按钮 -->
+    <div class="lang-switch">
+        <button class="lang-btn active" onclick="setLanguage('zh')">中</button>
+        <button class="lang-btn" onclick="setLanguage('ja')">日</button>
+        <button class="lang-btn" onclick="setLanguage('en')">En</button>
+    </div>
+
     <div class="container">
         <header>
-            <h1>日本語学習ツール</h1>
-            <p>Your Personal Japanese Learning Hub</p>
+            <h1 data-i18n="title">日语学习工具</h1>
+            <p data-i18n="subtitle">您的个人日语学习中心</p>
         </header>
 
+        <!-- 工具卡片区域 -->
         <main class="tool-grid">
-            <!-- Card 1: Grammar -->
             <a href="./grammar/" class="tool-card">
                 <div class="tool-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
                     </svg>
                 </div>
-                <h2>文法クエスト</h2>
-                <p>JLPT N1 & N2の文法を練習するインタラクティブなクイズ。</p>
+                <h2 data-i18n="card1_title">语法挑战</h2>
+                <p data-i18n="card1_desc">JLPT N1 & N2 语法互动练习测验。</p>
             </a>
             
-            <!-- Card 2: Lvbaoshu / Vocabulary -->
             <a href="./lvbaoshu/?level=n2&lang=ja" class="tool-card">
                 <div class="tool-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                     </svg>
                 </div>
-                <h2>无敌緑宝書 日本語単語</h2>
-                <p>JLPT各レベルの重要単語を効率的に暗記するためのツール。</p>
+                <h2 data-i18n="card2_title">无敌绿宝书 单词</h2>
+                <p data-i18n="card2_desc">高效记忆各级核心词汇的工具。</p>
             </a>
 
-            <!-- Card 3: Biaori / Standard Japanese Vocab -->
             <a href="./biaori/?lang=ja" class="tool-card">
                 <div class="tool-icon" style="color: var(--secondary-color);">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                     </svg>
                 </div>
-                <h2>標準日本語 単語練習</h2>
-                <p>「標準日本語」教材に基づいた語彙練習ツール。</p>
+                <h2 data-i18n="card3_title">标准日语 练习</h2>
+                <p data-i18n="card3_desc">基于《标准日语》教材的词汇练习。</p>
             </a>
         </main>
+
+        <!-- 电子书下载区域 -->
+        <section class="download-section">
+            <h2 class="section-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                <span data-i18n="download_title">电子书下载</span>
+            </h2>
+            
+            <!-- Category N1 -->
+            <details class="category-group cat-n1" open>
+                <summary class="category-header">
+                    <div class="cat-title">
+                        <span class="badge badge-n1">N1</span> 
+                        <span data-i18n="cat_n1">日语能力考试 N1</span>
+                    </div>
+                    <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <ul class="file-list">
+                    <li class="file-item">
+                        <div class="file-info">
+                            <span class="file-name"><span data-i18n="book_grammar_n1n2">语法 N1-N2</span> <span class="file-ext">azw3</span></span>
+                            <span class="file-desc" data-i18n="desc_grammar_n1n2">N1-N2 语法专项详解</span>
+                        </div>
+                        <a href="./kindle/n2n1-yufa.azw3" class="dl-icon-btn" download><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg></a>
+                    </li>
+                    <li class="file-item">
+                        <div class="file-info">
+                            <span class="file-name"><span data-i18n="book_comprehensive">绿宝书（综合）</span> <span class="file-ext">azw3</span></span>
+                            <span class="file-desc" data-i18n="desc_n1_comp">N1 综合备考攻略</span>
+                        </div>
+                        <a href="./kindle/n1-lvbaoshu.azw3" class="dl-icon-btn" download><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg></a>
+                    </li>
+                    <li class="file-item">
+                        <div class="file-info">
+                            <span class="file-name"><span data-i18n="book_vocab">绿宝书（单词）</span> <span class="file-ext">azw3</span></span>
+                            <span class="file-desc" data-i18n="desc_n1_vocab">N1 词汇专项强化</span>
+                        </div>
+                        <a href="./kindle/n1-danci-lvbaoshu.azw3" class="dl-icon-btn" download><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg></a>
+                    </li>
+                </ul>
+            </details>
+
+            <!-- Category N2 -->
+            <details class="category-group cat-n2">
+                <summary class="category-header">
+                    <div class="cat-title"><span class="badge badge-n2">N2</span> <span data-i18n="cat_n2">日语能力考试 N2</span></div>
+                    <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <ul class="file-list">
+                    <li class="file-item">
+                        <div class="file-info">
+                            <span class="file-name"><span data-i18n="book_grammar_n1n2">语法 N1-N2</span> <span class="file-ext">azw3</span></span>
+                            <span class="file-desc" data-i18n="desc_grammar_n1n2">N1-N2 语法专项详解</span>
+                        </div>
+                        <a href="./kindle/n2n1-yufa.azw3" class="dl-icon-btn" download><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg></a>
+                    </li>
+                    <li class="file-item">
+                        <div class="file-info">
+                            <span class="file-name"><span data-i18n="book_comprehensive">绿宝书（综合）</span> <span class="file-ext">azw3</span></span>
+                            <span class="file-desc" data-i18n="desc_n2_comp">N2 综合备考攻略</span>
+                        </div>
+                        <a href="./kindle/n2-lvbaoshu.azw3" class="dl-icon-btn" download><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg></a>
+                    </li>
+                    <li class="file-item">
+                        <div class="file-info">
+                            <span class="file-name"><span data-i18n="book_vocab">绿宝书（单词）</span> <span class="file-ext">azw3</span></span>
+                            <span class="file-desc" data-i18n="desc_n2_vocab">N2 词汇专项强化</span>
+                        </div>
+                        <a href="./kindle/n2-danci-lvbaoshu.azw3" class="dl-icon-btn" download><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg></a>
+                    </li>
+                </ul>
+            </details>
+
+            <!-- Category N3 -->
+            <details class="category-group cat-n3">
+                <summary class="category-header">
+                    <div class="cat-title"><span class="badge badge-n3">N3</span> <span data-i18n="cat_n3">日语能力考试 N3</span></div>
+                    <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <ul class="file-list">
+                    <li class="file-item">
+                        <div class="file-info">
+                            <span class="file-name"><span data-i18n="book_comprehensive">绿宝书（综合）</span> <span class="file-ext">azw3</span></span>
+                            <span class="file-desc" data-i18n="desc_n3_comp">N3 综合备考攻略</span>
+                        </div>
+                        <a href="./kindle/n3-lvbaoshu.azw3" class="dl-icon-btn" download><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg></a>
+                    </li>
+                    <li class="file-item">
+                        <div class="file-info">
+                            <span class="file-name"><span data-i18n="book_vocab">绿宝书（单词）</span> <span class="file-ext">azw3</span></span>
+                            <span class="file-desc" data-i18n="desc_n3_vocab">N3 词汇专项强化</span>
+                        </div>
+                        <a href="./kindle/n3-danci-lvbaoshu.azw3" class="dl-icon-btn" download><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg></a>
+                    </li>
+                </ul>
+            </details>
+
+            <!-- Category N4 -->
+            <details class="category-group cat-n4">
+                <summary class="category-header">
+                    <div class="cat-title"><span class="badge badge-n4">N4</span> <span data-i18n="cat_n4">日语能力考试 N4</span></div>
+                    <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <ul class="file-list">
+                    <li class="file-item">
+                        <div class="file-info">
+                            <span class="file-name"><span data-i18n="book_comprehensive">绿宝书（综合）</span> <span class="file-ext">azw3</span></span>
+                            <span class="file-desc" data-i18n="desc_n4_comp">N4 综合备考攻略</span>
+                        </div>
+                        <a href="./kindle/n4-lvbaoshu.azw3" class="dl-icon-btn" download><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg></a>
+                    </li>
+                    <li class="file-item">
+                        <div class="file-info">
+                            <span class="file-name"><span data-i18n="book_vocab">绿宝书（单词）</span> <span class="file-ext">azw3</span></span>
+                            <span class="file-desc" data-i18n="desc_n4_vocab">N4 词汇专项强化</span>
+                        </div>
+                        <a href="./kindle/n4-danci-lvbaoshu.azw3" class="dl-icon-btn" download><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg></a>
+                    </li>
+                </ul>
+            </details>
+
+            <!-- Category N5 -->
+            <details class="category-group cat-n5">
+                <summary class="category-header">
+                    <div class="cat-title"><span class="badge badge-n5">N5</span> <span data-i18n="cat_n5">日语能力考试 N5</span></div>
+                    <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <ul class="file-list">
+                    <li class="file-item">
+                        <div class="file-info">
+                            <span class="file-name"><span data-i18n="book_comprehensive">绿宝书（综合）</span> <span class="file-ext">azw3</span></span>
+                            <span class="file-desc" data-i18n="desc_n5_comp">N5 综合备考攻略</span>
+                        </div>
+                        <a href="./kindle/n5-lvbaoshu.azw3" class="dl-icon-btn" download><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg></a>
+                    </li>
+                    <li class="file-item">
+                        <div class="file-info">
+                            <span class="file-name"><span data-i18n="book_vocab">绿宝书（单词）</span> <span class="file-ext">azw3</span></span>
+                            <span class="file-desc" data-i18n="desc_n5_vocab">N5 词汇专项强化</span>
+                        </div>
+                        <a href="./kindle/n5-danci-lvbaoshu.azw3" class="dl-icon-btn" download><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg></a>
+                    </li>
+                </ul>
+            </details>
+
+        </section>
 
         <footer>
             <p>&copy; 2025 Runner All Rights Reserved.</p>
         </footer>
     </div>
+
+    <!-- Script for Multi-language support -->
+    <script>
+        const translations = {
+            zh: {
+                title: "日语学习工具",
+                subtitle: "您的个人日语学习中心",
+                card1_title: "语法挑战",
+                card1_desc: "JLPT N1 & N2 语法互动练习测验。",
+                card2_title: "无敌绿宝书 单词",
+                card2_desc: "高效记忆各级核心词汇的工具。",
+                card3_title: "标准日语 练习",
+                card3_desc: "基于《标准日语》教材的词汇练习。",
+                download_title: "电子书下载",
+                cat_n1: "日语能力考试 N1",
+                cat_n2: "日语能力考试 N2",
+                cat_n3: "日语能力考试 N3",
+                cat_n4: "日语能力考试 N4",
+                cat_n5: "日语能力考试 N5",
+                book_comprehensive: "绿宝书（综合）",
+                book_vocab: "绿宝书（单词）",
+                book_grammar_n1n2: "语法 N1-N2",
+                desc_n1_comp: "N1 综合备考攻略",
+                desc_n1_vocab: "N1 词汇专项强化",
+                desc_grammar_n1n2: "N1-N2 语法专项详解",
+                desc_n2_comp: "N2 综合备考攻略",
+                desc_n2_vocab: "N2 词汇专项强化",
+                desc_n3_comp: "N3 综合备考攻略",
+                desc_n3_vocab: "N3 词汇专项强化",
+                desc_n4_comp: "N4 综合备考攻略",
+                desc_n4_vocab: "N4 词汇专项强化",
+                desc_n5_comp: "N5 综合备考攻略",
+                desc_n5_vocab: "N5 词汇专项强化"
+            },
+            ja: {
+                title: "日本語学習ツール",
+                subtitle: "Your Personal Japanese Learning Hub",
+                card1_title: "文法クエスト",
+                card1_desc: "JLPT N1 & N2の文法を練習するクイズ。",
+                card2_title: "无敌緑宝書 単語",
+                card2_desc: "JLPT重要単語を効率的に暗記するツール。",
+                card3_title: "標準日本語 練習",
+                card3_desc: "「標準日本語」教材に基づいた語彙練習。",
+                download_title: "電子書籍ダウンロード",
+                cat_n1: "日本語能力試験 N1",
+                cat_n2: "日本語能力試験 N2",
+                cat_n3: "日本語能力試験 N3",
+                cat_n4: "日本語能力試験 N4",
+                cat_n5: "日本語能力試験 N5",
+                book_comprehensive: "緑宝書（総合）",
+                book_vocab: "緑宝書（単語）",
+                book_grammar_n1n2: "文法 N1-N2",
+                desc_n1_comp: "N1 総合対策テキスト",
+                desc_n1_vocab: "N1 語彙力強化",
+                desc_grammar_n1n2: "N1-N2 文法徹底解説",
+                desc_n2_comp: "N2 総合対策テキスト",
+                desc_n2_vocab: "N2 語彙力強化",
+                desc_n3_comp: "N3 総合対策テキスト",
+                desc_n3_vocab: "N3 語彙力強化",
+                desc_n4_comp: "N4 総合対策テキスト",
+                desc_n4_vocab: "N4 語彙力強化",
+                desc_n5_comp: "N5 総合対策テキスト",
+                desc_n5_vocab: "N5 語彙力強化"
+            },
+            en: {
+                title: "Japanese Learning Tools",
+                subtitle: "Your Personal Japanese Learning Hub",
+                card1_title: "Grammar Quest",
+                card1_desc: "Interactive quizzes for JLPT N1 & N2 grammar.",
+                card2_title: "Lvbaoshu Vocabulary",
+                card2_desc: "Efficient tool for memorizing JLPT vocabulary.",
+                card3_title: "Standard JP Practice",
+                card3_desc: "Vocabulary practice based on Standard Japanese.",
+                download_title: "E-books Download",
+                cat_n1: "JLPT Level N1",
+                cat_n2: "JLPT Level N2",
+                cat_n3: "JLPT Level N3",
+                cat_n4: "JLPT Level N4",
+                cat_n5: "JLPT Level N5",
+                book_comprehensive: "Green Book (Comp.)",
+                book_vocab: "Green Book (Vocab)",
+                book_grammar_n1n2: "Grammar N1-N2",
+                desc_n1_comp: "N1 Comprehensive Guide",
+                desc_n1_vocab: "N1 Vocabulary Booster",
+                desc_grammar_n1n2: "N1-N2 Grammar Guide",
+                desc_n2_comp: "N2 Comprehensive Guide",
+                desc_n2_vocab: "N2 Vocabulary Booster",
+                desc_n3_comp: "N3 Comprehensive Guide",
+                desc_n3_vocab: "N3 Vocabulary Booster",
+                desc_n4_comp: "N4 Comprehensive Guide",
+                desc_n4_vocab: "N4 Vocabulary Booster",
+                desc_n5_comp: "N5 Comprehensive Guide",
+                desc_n5_vocab: "N5 Vocabulary Booster"
+            }
+        };
+
+        function setLanguage(lang) {
+            document.documentElement.lang = lang;
+            const data = translations[lang] || translations['zh'];
+
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (data[key]) {
+                    element.textContent = data[key];
+                }
+            });
+
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const btnIndex = lang === 'zh' ? 0 : lang === 'ja' ? 1 : 2;
+            document.querySelectorAll('.lang-btn')[btnIndex].classList.add('active');
+            localStorage.setItem('preferredLanguage', lang);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedLang = localStorage.getItem('preferredLanguage') || 'zh';
+            setLanguage(savedLang);
+        });
+    </script>
 </body>
 </html>
