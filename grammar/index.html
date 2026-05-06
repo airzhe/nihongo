@@ -5,304 +5,175 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>日本語文法クエスト</title>
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&display=swap');
 
     :root {
-        --primary-color: #4a90e2;
-        --primary-hover: #357abd;
-        --correct-bg: #e8f5e9; --correct-text: #2e7d32; --correct-border: #a5d6a7;
-        --incorrect-bg: #ffebee; --incorrect-text: #c62828; --incorrect-border: #ef9a9a;
-        --bg-color: #f7f9fc;
-        --card-bg: #ffffff;
-        --text-color: #2c3e50;
-        --light-text-color: #95a5a6;
-        --border-color: #edf2f7;
+        --text-main: #111827; /* 极深灰，接近黑，适合长时间阅读 */
+        --text-muted: #6b7280;
+        --border-light: #e5e7eb;
+        --bg-page: #f9fafb;
+        --bg-card: #ffffff;
+        
+        --color-correct: #059669;
+        --bg-correct: #f0fdf4;
+        --color-error: #dc2626;
+        --bg-error: #fef2f2;
     }
     
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
         font-family: 'Inter', 'Noto Sans JP', sans-serif;
-        background-color: var(--bg-color);
-        color: var(--text-color);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        padding: 20px;
+        background-color: var(--bg-page);
+        color: var(--text-main);
+        display: flex; justify-content: center; align-items: center;
+        min-height: 100vh; padding: 20px;
+        -webkit-font-smoothing: antialiased; /* 让字体渲染更平滑 */
     }
     
+    /* 核心卡片：取消厚重阴影，采用极简细边框 */
     #game-container {
-        background-color: var(--card-bg);
-        padding: 50px 60px;
-        border-radius: 24px; 
-        /* 优化：弥散阴影，更高级 */
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
-        width: 100%;
-        max-width: 900px;
-        text-align: center;
-        position: relative;
-        min-height: 800px;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden; /* 防止进度条溢出 */
+        background-color: var(--bg-card);
+        padding: 40px 50px 50px;
+        border-radius: 16px; 
+        border: 1px solid var(--border-light);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02); 
+        width: 100%; max-width: 800px;
+        position: relative; overflow: hidden;
+        display: flex; flex-direction: column; min-height: 700px;
     }
 
-    /* 优化：进度条 */
-    #progress-bar {
-        position: absolute; top: 0; left: 0; height: 6px; 
-        background-color: var(--primary-color);
-        border-radius: 24px 24px 0 0;
-        width: 0%; transition: width 0.3s ease;
-    }
+    #progress-bar { position: absolute; top: 0; left: 0; height: 3px; background-color: var(--text-main); transition: width 0.4s ease; opacity: 0.8; }
 
-    /* 标题区域 */
-    .header-section { margin-bottom: 25px; flex-shrink: 0; }
-    h1 { color: var(--primary-color); margin-bottom: 8px; font-weight: 700; font-size: 2.2em; letter-spacing: -1px; }
-    #subtitle { color: var(--light-text-color); font-size: 0.95em; font-weight: 500; opacity: 0.8; }
-    
-    /* 顶部控制栏 */
-    .app-header { 
-        display: flex; justify-content: space-between; align-items: center; 
-        padding-bottom: 10px; margin-bottom: 20px; 
-        flex-shrink: 0;
-    }
-    .header-left { display: flex; align-items: center; gap: 15px; }
-    .header-right { display: flex; align-items: center; gap: 8px; }
-    
-    /* 难度筛选器 & 按钮通用样式 */
-    .control-group { display: flex; background: transparent; padding: 0; gap: 5px; }
-    .btn { 
-        background: transparent; border: none; color: #b0b0b0; 
-        padding: 5px 12px; border-radius: 8px; cursor: pointer; 
-        font-weight: 600; font-size: 0.85em; transition: all 0.2s; 
-        touch-action: manipulation; /* 优化：禁用双击缩放，提升移动端响应速度 */
-    }
-    .btn:hover { color: var(--text-color); background-color: #f8f9fa; }
-    .btn:active { transform: scale(0.95); } /* 优化：按压动效 */
-    .level-btn.active { background-color: #f1f3f5; color: #555; }
-    
-    /* 复习按钮 & 清空按钮 */
-    #review-btn { border: 1px solid transparent; color: #b0b0b0; }
-    #review-btn.active { background-color: #f3e5f5; color: #8e24aa; }
-    #clear-mistakes-btn { color: #e74c3c; background: #fff0f0; }
-    #clear-mistakes-btn:hover { background: #ffe4e4; color: #c0392b; }
+    /* 标题区：极简排版，不再喧宾夺主 */
+    .header-section { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: baseline; }
+    h1 { color: var(--text-main); font-weight: 600; font-size: 1.4em; letter-spacing: -0.5px; margin-bottom: 4px;}
+    #subtitle { color: var(--text-muted); font-size: 0.85em; font-weight: 400; }
+    #score { font-size: 0.9em; font-weight: 500; color: var(--text-muted); } /* 取消分数牌底色，化为纯文字 */
 
-    /* 下拉菜单 */
-    .custom-select-wrapper { position: relative; user-select: none; z-index: 20; } 
-    .custom-select-trigger { 
-        display: flex; align-items: center; justify-content: space-between; 
-        padding: 5px 12px; min-width: auto; 
-        background: #f8f9fa; border: 1px solid transparent; border-radius: 8px; 
-        cursor: pointer; transition: all 0.2s; 
-        font-weight: 600; color: #888; font-size: 0.85em;
-        touch-action: manipulation;
+    /* 顶部控制栏：化繁为简 */
+    .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; padding-bottom: 15px; border-bottom: 1px solid var(--border-light); }
+    .header-left, .header-right { display: flex; align-items: center; gap: 15px; }
+    
+    .btn, .custom-select-trigger { 
+        background: transparent; border: none; color: var(--text-muted); 
+        padding: 6px 10px; cursor: pointer; font-weight: 500; font-size: 0.9em; 
+        transition: color 0.2s; touch-action: manipulation;
     }
-    .custom-select-trigger:hover { background: #f1f3f5; color: #555; }
-    .custom-select-trigger:active { transform: scale(0.95); }
-    .custom-select-trigger .arrow { width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 4px solid currentColor; margin-left: 8px; opacity: 0.5; transition: transform 0.2s; }
+    .btn:hover, .custom-select-trigger:hover { color: var(--text-main); }
+    .level-btn { position: relative; padding: 4px 8px; }
+    .level-btn.active { color: var(--text-main); font-weight: 600; }
+    /* 取消 Filter 的灰色大底块，改用极简的小圆点指示器 */
+    .level-btn.active::after { content: ''; position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background-color: var(--text-main); }
+    
+    #review-btn.active { color: var(--color-error); font-weight: 600; }
+    #clear-mistakes-btn { color: var(--color-error); opacity: 0.6; }
+    #clear-mistakes-btn:hover { opacity: 1; }
+
+    /* 下拉菜单极简处理 */
+    .custom-select-wrapper { position: relative; z-index: 20; } 
+    .custom-select-trigger { display: flex; align-items: center; gap: 6px; padding: 6px 0;}
+    .custom-select-trigger .arrow { width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 4px solid currentColor; opacity: 0.4; transition: transform 0.2s; }
     .custom-select-wrapper.open .arrow { transform: rotate(180deg); }
+    .custom-select-options { position: absolute; top: 100%; left: -10px; width: 140px; border: 1px solid var(--border-light); border-radius: 8px; background: #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.05); opacity: 0; visibility: hidden; transform: translateY(-5px); transition: all 0.2s; padding: 8px; }
+    .custom-select-wrapper.open .custom-select-options { opacity: 1; visibility: visible; transform: translateY(0); }
+    .custom-option { padding: 8px 12px; border-radius: 6px; font-weight: 400; cursor: pointer; font-size: 0.9em; color: var(--text-muted); }
+    .custom-option:hover { background-color: var(--bg-page); color: var(--text-main); }
+    .custom-option.selected { color: var(--text-main); font-weight: 600; background-color: transparent;}
 
-    .custom-select-options { 
-        position: absolute; top: calc(100% + 5px); left: 0; 
-        width: 140px; 
-        border: 1px solid var(--border-color); border-radius: 8px; background: #fff; 
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
-        opacity: 0; visibility: hidden; pointer-events: none; 
-        transform: translateY(-5px); transition: all 0.2s; 
-    }
-    .custom-select-wrapper.open .custom-select-options { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); }
-    .custom-option { padding: 8px 12px; font-weight: 500; cursor: pointer; transition: background 0.2s; text-align: left; font-size: 0.85em; color: var(--text-color); }
-    .custom-option:hover { background-color: #f8f9fa; }
-    .custom-option.selected { color: var(--primary-color); background-color: #f0f7ff; font-weight: 600; }
-    
-    /* 题目与选项入场动画 */
-    @keyframes slideUpFade {
-        from { opacity: 0; transform: translateY(15px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    .animate-enter { animation: slideUpFade 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+    /* 题目区域：增加呼吸感 */
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .animate-enter { animation: fadeIn 0.3s ease forwards; }
 
-    /* 题目区域 */
-    #sentence-area {
-        height: 120px; 
-        display: flex; align-items: center; justify-content: center;
-        margin-bottom: 20px; flex-shrink: 0; margin-top: 10px;
-    }
-    #sentence-container { font-size: 1.8em; line-height: 1.6; color: var(--text-color); font-weight: 700; }
-    #sentence-container .blank { color: transparent; border-bottom: 3px solid var(--primary-color); padding: 0 5px; margin: 0 8px; display: inline-block; min-width: 80px; text-align: center; height: 1.2em; }
-    #sentence-container .highlight { color: var(--primary-color); border-bottom: none; }
+    #sentence-area { min-height: 100px; display: flex; align-items: center; justify-content: center; margin-bottom: 40px; }
+    #sentence-container { font-size: 1.5em; line-height: 1.8; color: var(--text-main); font-weight: 500; text-align: center; }
+    #sentence-container .blank { color: transparent; border-bottom: 1px solid var(--text-muted); padding: 0 2px; margin: 0 8px; display: inline-block; min-width: 80px; height: 1.2em; transition: border-color 0.3s; }
+    #sentence-container .highlight { color: var(--text-main); border-bottom: none; font-weight: 600; }
     
-    /* 选项区域 */
-    #options-container { 
-        display: grid; grid-template-columns: 1fr 1fr; gap: 20px; 
-        margin-bottom: 30px; flex-shrink: 0; height: 180px; 
+    /* 选项按钮：去色块化，纯粹的线条艺术 */
+    #options-container { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 40px; }
+    .option-btn { 
+        display: flex; align-items: center; padding: 0 20px; height: 64px; 
+        font-size: 1.05em; background-color: #fff; border: 1px solid var(--border-light); 
+        border-radius: 12px; cursor: pointer; transition: all 0.2s ease; 
+        font-weight: 500; color: var(--text-main); touch-action: manipulation;
     }
-    .option-btn {
-        display: flex; align-items: center; gap: 15px; padding: 0 25px;
-        height: 80px; font-size: 1.1em; background-color: #fff; 
-        border: 1px solid var(--border-color); border-radius: 16px; 
-        cursor: pointer; transition: all .2s; font-weight: 600; color: var(--text-color); 
-        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-        touch-action: manipulation;
-    }
-    .option-btn:hover:not(.answered) { border-color: var(--primary-color); transform: translateY(-3px); box-shadow: 0 8px 20px rgba(74, 144, 226, 0.1); }
-    .option-btn:active:not(.answered) { transform: scale(0.98); box-shadow: 0 2px 5px rgba(0,0,0,0.05); } /* 按压效果 */
+    .option-btn:hover:not(.answered) { border-color: #9ca3af; }
+    .option-btn:active:not(.answered) { transform: scale(0.98); }
     .option-btn.answered { cursor: default; }
     
-    .key-hint { font-size: .85em; font-weight: 700; background-color: #e9ecef; color: var(--light-text-color); width: 32px; height: 32px; border-radius: 8px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
+    /* 选项序号：极简的分隔线设计，替代圆圈 */
+    .key-hint { font-size: 0.85em; font-weight: 400; color: #9ca3af; width: 30px; border-right: 1px solid var(--border-light); display: flex; align-items: center; justify-content: flex-start; margin-right: 15px; }
     .option-text { flex-grow: 1; text-align: left; }
     
-    /* 正确动画跳动 */
-    @keyframes pop {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.03); }
-        100% { transform: scale(1); }
-    }
-    .option-btn.correct { background-color: var(--correct-bg); border-color: var(--correct-border); color: var(--correct-text); animation: pop 0.4s ease; }
-    .option-btn.correct .key-hint { background-color: rgba(255,255,255,0.6); color: var(--correct-text); }
-    .option-btn.selected.incorrect { background-color: var(--incorrect-bg); border-color: var(--incorrect-border); color: var(--incorrect-text); }
-    .option-btn.selected.incorrect .key-hint { background-color: rgba(255,255,255,0.6); color: var(--incorrect-text); }
+    /* 答题状态：克制的颜色变化，不再整块染色 */
+    .option-btn.correct { border-color: var(--color-correct); color: var(--color-correct); background: var(--bg-card); }
+    .option-btn.correct .key-hint { color: var(--color-correct); border-color: #a7f3d0; }
+    .option-btn.selected.incorrect { border-color: var(--color-error); color: var(--color-error); background: var(--bg-card); }
+    .option-btn.selected.incorrect .key-hint { color: var(--color-error); border-color: #fecaca; }
     
-    /* 底部区域 */
-    .bottom-section {
-        flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-start; position: relative;
-    }
-
-    /* 反馈动画弹窗 */
-    #feedback {
-        padding: 25px; border-radius: 16px; text-align: left;
-        font-size: 1.05em; line-height: 1.7; 
-        height: 180px; overflow-y: auto; scrollbar-width: none; 
-        visibility: hidden; opacity: 0; 
-        transform: translateY(10px); /* 动画初始位置 */
-        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); /* 回弹动效 */
-        margin-bottom: 20px;
-    }
+    /* 反馈区域：柔和的底色，去掉刺眼的粗边框 */
+    .bottom-section { flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-start; align-items: center;}
+    #feedback { width: 100%; padding: 24px; border-radius: 12px; text-align: left; font-size: 0.95em; line-height: 1.8; height: 160px; overflow-y: auto; scrollbar-width: none; visibility: hidden; opacity: 0; transition: opacity 0.3s ease; margin-bottom: 20px; }
     #feedback::-webkit-scrollbar { display: none; }
-    #feedback.visible { visibility: visible; opacity: 1; transform: translateY(0); }
-    #feedback.correct { background-color: var(--correct-bg); border: 1px solid var(--correct-border); color: #1b5e20; }
-    #feedback.incorrect { background-color: var(--incorrect-bg); border: 1px solid var(--incorrect-border); color: #b71c1c; }
-    #feedback-title { font-weight: 800; font-size: 1.2em; margin-bottom: 10px; }
-    #feedback p { margin: 5px 0; }
+    #feedback.visible { visibility: visible; opacity: 1; }
+    
+    #feedback.correct { background-color: var(--bg-correct); color: var(--color-correct); }
+    #feedback.incorrect { background-color: var(--bg-error); color: var(--color-error); }
+    #feedback-title { font-weight: 600; font-size: 1.1em; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    #feedback p { margin: 6px 0; font-weight: 400; }
+    #feedback strong { font-weight: 600; }
 
-    #next-btn-container { 
-        height: 50px; display: flex; justify-content: center; 
-        visibility: hidden; opacity: 0; transition: opacity 0.3s;
-    }
+    #next-btn-container { height: 50px; display: flex; justify-content: center; visibility: hidden; opacity: 0; transition: opacity 0.3s; width: 100%; }
     #next-btn-container.visible { visibility: visible; opacity: 1; }
 
-    #next-btn {
-        padding: 14px 50px; font-size: 1.1em; font-weight: 700; 
-        background-color: var(--primary-color); color: #fff; border-radius: 30px; border: none; 
-        cursor: pointer; box-shadow: 0 8px 16px rgba(74, 144, 226, 0.3); /* 高级阴影 */
-        transition: all 0.2s; touch-action: manipulation;
+    /* 下一题按钮：苹果风高级黑 */
+    #next-btn { 
+        padding: 0 40px; height: 48px; font-size: 1em; font-weight: 500; 
+        background-color: var(--text-main); color: #fff; border-radius: 8px; 
+        border: none; cursor: pointer; transition: all 0.2s; 
+        touch-action: manipulation; width: 100%; max-width: 260px;
     }
-    #next-btn:hover { background-color: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 12px 24px rgba(74, 144, 226, 0.4); }
-    #next-btn:active { transform: scale(0.95); }
+    #next-btn:hover { background-color: #374151; }
+    #next-btn:active { transform: scale(0.97); }
     
-    #score {
-        position: fixed; top: 25px; right: 30px; 
-        font-size: 0.95em; font-weight: 700;
-        background-color: #fff; color: var(--text-color);
-        padding: 12px 24px; border-radius: 30px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-        z-index: 100;
-    }
-
-    #notification {
-        position: fixed; top: 30px; left: 50%; transform: translate(-50%, -20px);
-        background-color: #2c3e50; color: #fff;
-        padding: 12px 30px; border-radius: 30px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
-        font-size: 1em; font-weight: 600;
-        z-index: 1000; opacity: 0; pointer-events: none;
-        transition: all 0.3s;
-    }
+    #notification { position: fixed; top: 30px; left: 50%; transform: translate(-50%, -20px); background-color: var(--text-main); color: #fff; padding: 10px 24px; border-radius: 8px; font-size: 0.9em; font-weight: 500; z-index: 1000; opacity: 0; pointer-events: none; transition: all 0.3s; }
     #notification.visible { opacity: 1; transform: translate(-50%, 0); }
     
-    /* 字典弹窗 */
-    .modal {
-        display: none; 
-        position: fixed; z-index: 2000; left: 0; top: 0;
-        width: 100%; height: 100%;
-        background-color: rgba(0, 0, 0, 0.4);
-        backdrop-filter: blur(4px);
-        opacity: 0; transition: opacity 0.3s ease;
-    }
+    /* 字典弹窗：极简风格 */
+    .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(17, 24, 39, 0.3); backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.2s ease; }
     .modal.show { display: flex; justify-content: center; align-items: center; opacity: 1; }
-
-    .modal-content {
-        background-color: #fff;
-        border-radius: 20px;
-        width: 90%; max-width: 600px;
-        max-height: 85vh;
-        display: flex; flex-direction: column;
-        box-shadow: 0 15px 50px rgba(0,0,0,0.15);
-        transform: translateY(-20px); transition: transform 0.3s ease;
-    }
+    .modal-content { background-color: #fff; border-radius: 16px; width: 90%; max-width: 600px; height: 80vh; max-height: 700px; display: flex; flex-direction: column; box-shadow: 0 20px 40px rgba(0,0,0,0.1); transform: translateY(-10px); transition: transform 0.2s ease; overflow: hidden;}
     .modal.show .modal-content { transform: translateY(0); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px 15px; }
+    .modal-header h2 { font-size: 1.1em; margin: 0; color: var(--text-main); font-weight: 600; }
+    .close-btn { font-size: 1.6em; color: #9ca3af; cursor: pointer; line-height: 1; font-weight: 300;}
+    .close-btn:hover { color: var(--text-main); }
+    .modal-search { padding: 0 24px 15px; border-bottom: 1px solid var(--border-light); }
+    #dict-search { width: 100%; padding: 12px 16px; border: 1px solid var(--border-light); border-radius: 8px; font-size: 0.95em; outline: none; transition: all 0.2s; background: var(--bg-page); color: var(--text-main); }
+    #dict-search:focus { border-color: var(--text-muted); background: #fff; }
+    .dict-results { padding: 15px 24px; overflow-y: auto; flex-grow: 1; }
+    .dict-item { background: #fff; border-bottom: 1px solid var(--border-light); padding: 16px 0; white-space: pre-wrap; font-size: 0.9em; line-height: 1.7; color: var(--text-main); }
+    .dict-item:last-child { border-bottom: none; }
+    .highlight-text { background-color: #fef08a; color: #b45309; font-weight: 500; padding: 0 2px; }
 
-    .modal-header {
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 20px 25px; border-bottom: 1px solid var(--border-color);
-    }
-    .modal-header h2 { font-size: 1.3em; margin: 0; color: var(--text-color); }
-    .close-btn { font-size: 1.8em; font-weight: bold; color: #aaa; cursor: pointer; line-height: 1; transition: color 0.2s;}
-    .close-btn:hover { color: var(--incorrect-text); }
-
-    .modal-search { padding: 15px 25px; background: #f8f9fa; }
-    /* 优化：使用 type="search" 原生支持一键清除 */
-    #dict-search {
-        width: 100%; padding: 12px 20px;
-        border: 2px solid var(--border-color); border-radius: 12px;
-        font-size: 1em; font-family: inherit; outline: none; transition: border-color 0.2s;
-    }
-    #dict-search:focus { border-color: var(--primary-color); }
-
-    .dict-results {
-        padding: 15px 25px; overflow-y: auto; flex-grow: 1;
-    }
-    .dict-item {
-        background: #f8f9fa; border-left: 4px solid var(--primary-color);
-        padding: 15px; margin-bottom: 15px; border-radius: 0 12px 12px 0;
-        white-space: pre-wrap; 
-        font-size: 0.95em; line-height: 1.6; color: var(--text-color);
-    }
-    .highlight-text { background-color: #fff59d; color: #d32f2f; font-weight: bold; padding: 0 2px; border-radius: 3px; }
-
-    /* 移动端适配优化 */
+    /* 移动端适配 */
     @media (max-width: 768px) {
-        body { padding: 15px 10px; align-items: flex-start; }
-        #game-container { padding: 25px 20px; min-height: auto; height: auto; border-radius: 20px; margin-top: 10px; }
-        h1 { font-size: 1.6em; margin-bottom: 5px; }
-        #subtitle { margin-bottom: 20px; font-size: 0.9em; }
-
-        .app-header { flex-direction: column; align-items: stretch; gap: 15px; margin-bottom: 10px; }
-        .header-left { flex-direction: column; align-items: stretch; gap: 10px; }
-        .header-right { justify-content: center; flex-wrap: wrap; } 
-        
-        .custom-select-wrapper { width: 100%; }
-        .custom-select-trigger { width: 100%; justify-content: space-between; }
-        .custom-select-options { position: static; width: 100%; opacity: 1; visibility: visible; display: none; box-shadow: none; border: 1px solid var(--border-color); transform: none; margin-top: 5px; }
-        .custom-select-wrapper.open .custom-select-options { display: block; animation: slideDownMobile 0.2s ease-out; }
-        @keyframes slideDownMobile { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-
-        .control-group { justify-content: space-between; width: 100%; }
-        .btn { flex: 1; text-align: center; }
-        
-        #sentence-area { height: auto; min-height: 80px; margin: 20px 0; }
-        #sentence-container { font-size: 1.3em; line-height: 1.5; }
-        #options-container { grid-template-columns: 1fr; height: auto; gap: 12px; }
-        .option-btn { height: auto; padding: 15px; min-height: 60px; }
-        #feedback { height: auto; min-height: 120px; max-height: 300px; padding: 20px; }
-        
-        #score { position: absolute; top: 15px; right: 15px; padding: 4px 10px; font-size: 0.8em; box-shadow: none; border: 1px solid var(--border-color); background: #f8f9fa; }
-        
-        /* 移动端弹窗优化 */
-        .modal-content { width: 95%; max-height: 90vh; border-radius: 24px; }
-        .close-btn { padding: 10px; margin-right: -10px; }
-        .dict-item { padding: 12px; font-size: 0.9em; }
+        body { padding: 0; background: var(--bg-card);}
+        #game-container { padding: 25px 20px 40px; min-height: 100vh; border-radius: 0; border: none; box-shadow: none; max-width: 100%;}
+        .header-section { margin-bottom: 20px; flex-wrap: wrap;}
+        h1 { font-size: 1.3em; }
+        .app-header { flex-direction: column; align-items: flex-start; gap: 15px; margin-bottom: 20px; padding-bottom: 10px;}
+        .header-left, .header-right { width: 100%; justify-content: space-between; gap: 5px; }
+        .custom-select-wrapper { margin-left: -5px;}
+        #sentence-area { min-height: 80px; margin-bottom: 30px; }
+        #sentence-container { font-size: 1.3em; line-height: 1.6; }
+        #options-container { grid-template-columns: 1fr; gap: 12px; margin-bottom: 20px;}
+        .option-btn { height: auto; padding: 16px; border-radius: 10px;}
+        #feedback { height: auto; min-height: 120px; max-height: 250px; padding: 16px; margin-bottom: 20px;}
+        #next-btn { width: 100%; max-width: none; height: 50px; font-size: 1em; border-radius: 10px;}
+        .modal-content { width: 100%; height: 95vh; border-radius: 16px 16px 0 0; position: absolute; bottom: 0; transform: translateY(100%);}
+        .modal.show .modal-content { transform: translateY(0); }
     }
 </style>
 </head>
@@ -311,11 +182,13 @@
 <div id="game-container">
     <!-- 新增进度条 -->
     <div id="progress-bar"></div>
-    <div id="score">Score: 0 / 0</div>
 
     <div class="header-section">
-        <h1>日本語文法クエスト</h1>
-        <p id="subtitle">JLPT N1 & N2 Grammar Mastery</p>
+        <div class="title-group">
+            <h1>日本語文法クエスト</h1>
+            <p id="subtitle">JLPT N1 & N2 Grammar Mastery</p>
+        </div>
+        <div id="score">Score: 0 / 0</div>
     </div>
     
     <header class="app-header">
