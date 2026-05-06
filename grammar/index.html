@@ -157,22 +157,32 @@
     .dict-item:last-child { border-bottom: none; }
     .highlight-text { background-color: #fef08a; color: #b45309; font-weight: 500; padding: 0 2px; }
 
-    /* 移动端适配 */
+   /* 移动端终极完美适配 */
     @media (max-width: 768px) {
-        body { padding: 0; background: var(--bg-card);}
-        #game-container { padding: 25px 20px 40px; min-height: 100vh; border-radius: 0; border: none; box-shadow: none; max-width: 100%;}
+        body { padding: 0; background: var(--bg-card); }
+        /* 增加了底部的 60px 留白，适配 iPhone 底部黑条 */
+        #game-container { padding: 25px 20px 60px; min-height: 100vh; border-radius: 0; border: none; box-shadow: none; max-width: 100%;}
+        
         .header-section { margin-bottom: 20px; flex-wrap: wrap;}
-        h1 { font-size: 1.3em; }
-        .app-header { flex-direction: column; align-items: flex-start; gap: 15px; margin-bottom: 20px; padding-bottom: 10px;}
+        h1 { font-size: 1.35em; }
+        .app-header { flex-direction: column; align-items: flex-start; gap: 15px; margin-bottom: 20px; padding-bottom: 15px;}
         .header-left, .header-right { width: 100%; justify-content: space-between; gap: 5px; }
         .custom-select-wrapper { margin-left: -5px;}
+        
         #sentence-area { min-height: 80px; margin-bottom: 30px; }
-        #sentence-container { font-size: 1.3em; line-height: 1.6; }
-        #options-container { grid-template-columns: 1fr; gap: 12px; margin-bottom: 20px;}
-        .option-btn { height: auto; padding: 16px; border-radius: 10px;}
-        #feedback { height: auto; min-height: 120px; max-height: 250px; padding: 16px; margin-bottom: 20px;}
-        #next-btn { width: 100%; max-width: none; height: 50px; font-size: 1em; border-radius: 10px;}
-        .modal-content { width: 100%; height: 95vh; border-radius: 16px 16px 0 0; position: absolute; bottom: 0; transform: translateY(100%);}
+        #sentence-container { font-size: 1.25em; line-height: 1.6; }
+        
+        /* 加大了选项间的 gap 到 16px，提升呼吸感和防误触 */
+        #options-container { grid-template-columns: 1fr; gap: 16px; margin-bottom: 25px;}
+        .option-btn { height: auto; padding: 18px 16px; border-radius: 12px;}
+        
+        #feedback { height: auto; min-height: 120px; max-height: none; padding: 20px; margin-bottom: 20px;}
+        
+        /* 统一了圆角到 12px，稍微增加了高度 */
+        #next-btn { width: 100%; max-width: none; height: 54px; font-size: 1.05em; border-radius: 12px;}
+        
+        /* 字典弹窗移动端优化 */
+        .modal-content { width: 100%; height: 92vh; border-radius: 20px 20px 0 0; position: absolute; bottom: 0; transform: translateY(100%);}
         .modal.show .modal-content { transform: translateY(0); }
     }
 </style>
