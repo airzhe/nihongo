@@ -8,7 +8,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&display=swap');
 
     :root {
-        --text-main: #111827; /* 极深灰，接近黑，适合长时间阅读 */
+        --text-main: #111827; 
         --text-muted: #6b7280;
         --border-light: #e5e7eb;
         --bg-page: #f9fafb;
@@ -20,7 +20,15 @@
         --bg-error: #fef2f2;
     }
     
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { 
+        box-sizing: border-box; margin: 0; padding: 0; 
+        
+        /* 1. 彻底去除所有按钮点击时系统自带的丑陋外框 */
+        outline: none !important; 
+        
+        /* 2. 去除手机端点击时瞬间闪过的灰色/半透明遮罩 */
+        -webkit-tap-highlight-color: transparent; 
+    }
 
     body {
         font-family: 'Inter', 'Noto Sans JP', sans-serif;
@@ -28,10 +36,9 @@
         color: var(--text-main);
         display: flex; justify-content: center; align-items: center;
         min-height: 100vh; padding: 20px;
-        -webkit-font-smoothing: antialiased; /* 让字体渲染更平滑 */
+        -webkit-font-smoothing: antialiased; 
     }
     
-    /* 核心卡片：取消厚重阴影，采用极简细边框 */
     #game-container {
         background-color: var(--bg-card);
         padding: 40px 50px 50px;
@@ -45,74 +52,70 @@
 
     #progress-bar { position: absolute; top: 0; left: 0; height: 3px; background-color: var(--text-main); transition: width 0.4s ease; opacity: 0.8; }
 
-    /* 标题区：极简排版，不再喧宾夺主 */
     .header-section { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: baseline; }
     h1 { color: var(--text-main); font-weight: 600; font-size: 1.4em; letter-spacing: -0.5px; margin-bottom: 4px;}
     #subtitle { color: var(--text-muted); font-size: 0.85em; font-weight: 400; }
-    #score { font-size: 0.9em; font-weight: 500; color: var(--text-muted); } /* 取消分数牌底色，化为纯文字 */
+    #score { font-size: 0.9em; font-weight: 500; color: var(--text-muted); }
 
-    /* 顶部控制栏：化繁为简 */
     .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; padding-bottom: 15px; border-bottom: 1px solid var(--border-light); }
     .header-left, .header-right { display: flex; align-items: center; gap: 15px; }
     
     .btn, .custom-select-trigger { 
         background: transparent; border: none; color: var(--text-muted); 
         padding: 6px 10px; cursor: pointer; font-weight: 500; font-size: 0.9em; 
-        transition: color 0.2s; touch-action: manipulation;
+        transition: color 0.2s ease, background-color 0.2s ease; /* 使用渐变色代替位移 */
+        touch-action: manipulation;
     }
     .btn:hover, .custom-select-trigger:hover { color: var(--text-main); }
     .level-btn { position: relative; padding: 4px 8px; }
     .level-btn.active { color: var(--text-main); font-weight: 600; }
-    /* 取消 Filter 的灰色大底块，改用极简的小圆点指示器 */
     .level-btn.active::after { content: ''; position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background-color: var(--text-main); }
     
     #review-btn.active { color: var(--color-error); font-weight: 600; }
     #clear-mistakes-btn { color: var(--color-error); opacity: 0.6; }
     #clear-mistakes-btn:hover { opacity: 1; }
 
-    /* 下拉菜单极简处理 */
     .custom-select-wrapper { position: relative; z-index: 20; } 
     .custom-select-trigger { display: flex; align-items: center; gap: 6px; padding: 6px 0;}
-    .custom-select-trigger .arrow { width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 4px solid currentColor; opacity: 0.4; transition: transform 0.2s; }
+    .custom-select-trigger .arrow { width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 4px solid currentColor; opacity: 0.6; transition: transform 0.2s ease; }
     .custom-select-wrapper.open .arrow { transform: rotate(180deg); }
-    .custom-select-options { position: absolute; top: 100%; left: -10px; width: 140px; border: 1px solid var(--border-light); border-radius: 8px; background: #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.05); opacity: 0; visibility: hidden; transform: translateY(-5px); transition: all 0.2s; padding: 8px; }
+    .custom-select-options { position: absolute; top: 100%; left: -10px; width: 140px; border: 1px solid var(--border-light); border-radius: 8px; background: #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.05); opacity: 0; visibility: hidden; transform: translateY(-5px); transition: all 0.2s ease; padding: 8px; }
     .custom-select-wrapper.open .custom-select-options { opacity: 1; visibility: visible; transform: translateY(0); }
-    .custom-option { padding: 8px 12px; border-radius: 6px; font-weight: 400; cursor: pointer; font-size: 0.9em; color: var(--text-muted); }
+    .custom-option { padding: 8px 12px; border-radius: 6px; font-weight: 400; cursor: pointer; font-size: 0.9em; color: var(--text-muted); transition: background-color 0.2s ease; }
     .custom-option:hover { background-color: var(--bg-page); color: var(--text-main); }
     .custom-option.selected { color: var(--text-main); font-weight: 600; background-color: transparent;}
 
-    /* 题目区域：增加呼吸感 */
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    .animate-enter { animation: fadeIn 0.3s ease forwards; }
+    .animate-enter { animation: fadeIn 0.4s ease forwards; }
 
     #sentence-area { min-height: 100px; display: flex; align-items: center; justify-content: center; margin-bottom: 40px; }
     #sentence-container { font-size: 1.5em; line-height: 1.8; color: var(--text-main); font-weight: 500; text-align: center; }
-    #sentence-container .blank { color: transparent; border-bottom: 1px solid var(--text-muted); padding: 0 2px; margin: 0 8px; display: inline-block; min-width: 80px; height: 1.2em; transition: border-color 0.3s; }
+    #sentence-container .blank { color: transparent; border-bottom: 1px solid var(--text-muted); padding: 0 2px; margin: 0 8px; display: inline-block; min-width: 80px; height: 1.2em; transition: border-color 0.3s ease; }
     #sentence-container .highlight { color: var(--text-main); border-bottom: none; font-weight: 600; }
     
-    /* 选项按钮：去色块化，纯粹的线条艺术 */
     #options-container { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 40px; }
     .option-btn { 
         display: flex; align-items: center; padding: 0 20px; height: 64px; 
         font-size: 1.05em; background-color: #fff; border: 1px solid var(--border-light); 
-        border-radius: 12px; cursor: pointer; transition: all 0.2s ease; 
+        border-radius: 12px; cursor: pointer; 
+        transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease; /* 只做颜色渐变，无形变 */
         font-weight: 500; color: var(--text-main); touch-action: manipulation;
+        -webkit-user-select: auto; user-select: auto; 
     }
     .option-btn:hover:not(.answered) { border-color: #9ca3af; }
-    .option-btn:active:not(.answered) { transform: scale(0.98); }
+    /* 彻底删除了 .option-btn:active 的形变代码 */
     .option-btn.answered { cursor: default; }
     
-    /* 选项序号：极简的分隔线设计，替代圆圈 */
-    .key-hint { font-size: 0.85em; font-weight: 400; color: #9ca3af; width: 30px; border-right: 1px solid var(--border-light); display: flex; align-items: center; justify-content: flex-start; margin-right: 15px; }
-    .option-text { flex-grow: 1; text-align: left; }
+    .key-hint { font-size: 0.85em; font-weight: 400; color: #9ca3af; width: 30px; border-right: 1px solid var(--border-light); display: flex; align-items: center; justify-content: flex-start; margin-right: 15px; transition: color 0.2s ease, border-color 0.2s ease;}
     
-    /* 答题状态：克制的颜色变化，不再整块染色 */
+    .option-text { cursor: text; -webkit-user-select: text; user-select: text; flex-grow: 1; text-align: left; }
+    
+    /* 答题状态：去除 pop 动画，只有安静的颜色变化 */
     .option-btn.correct { border-color: var(--color-correct); color: var(--color-correct); background: var(--bg-card); }
     .option-btn.correct .key-hint { color: var(--color-correct); border-color: #a7f3d0; }
     .option-btn.selected.incorrect { border-color: var(--color-error); color: var(--color-error); background: var(--bg-card); }
     .option-btn.selected.incorrect .key-hint { color: var(--color-error); border-color: #fecaca; }
     
-    /* 反馈区域：柔和的底色，去掉刺眼的粗边框 */
     .bottom-section { flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-start; align-items: center;}
     #feedback { width: 100%; padding: 24px; border-radius: 12px; text-align: left; font-size: 0.95em; line-height: 1.8; height: 160px; overflow-y: auto; scrollbar-width: none; visibility: hidden; opacity: 0; transition: opacity 0.3s ease; margin-bottom: 20px; }
     #feedback::-webkit-scrollbar { display: none; }
@@ -124,43 +127,39 @@
     #feedback p { margin: 6px 0; font-weight: 400; }
     #feedback strong { font-weight: 600; }
 
-    #next-btn-container { height: 50px; display: flex; justify-content: center; visibility: hidden; opacity: 0; transition: opacity 0.3s; width: 100%; }
+    #next-btn-container { height: 50px; display: flex; justify-content: center; visibility: hidden; opacity: 0; transition: opacity 0.3s ease; width: 100%; }
     #next-btn-container.visible { visibility: visible; opacity: 1; }
 
-    /* 下一题按钮：苹果风高级黑 */
     #next-btn { 
         padding: 0 40px; height: 48px; font-size: 1em; font-weight: 500; 
         background-color: var(--text-main); color: #fff; border-radius: 8px; 
-        border: none; cursor: pointer; transition: all 0.2s; 
+        border: none; cursor: pointer; transition: background-color 0.2s ease; /* 去除 active 形变，只保留悬停颜色渐变 */
         touch-action: manipulation; width: 100%; max-width: 260px;
     }
     #next-btn:hover { background-color: #374151; }
-    #next-btn:active { transform: scale(0.97); }
+    /* 彻底删除了 #next-btn:active 的形变代码 */
     
-    #notification { position: fixed; top: 30px; left: 50%; transform: translate(-50%, -20px); background-color: var(--text-main); color: #fff; padding: 10px 24px; border-radius: 8px; font-size: 0.9em; font-weight: 500; z-index: 1000; opacity: 0; pointer-events: none; transition: all 0.3s; }
+    #notification { position: fixed; top: 30px; left: 50%; transform: translate(-50%, -20px); background-color: var(--text-main); color: #fff; padding: 10px 24px; border-radius: 8px; font-size: 0.9em; font-weight: 500; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease, transform 0.3s ease; }
     #notification.visible { opacity: 1; transform: translate(-50%, 0); }
     
-    /* 字典弹窗：极简风格 */
-    .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(17, 24, 39, 0.3); backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.2s ease; }
+    .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(17, 24, 39, 0.3); backdrop-filter: blur(2px); opacity: 0; transition: opacity 0.3s ease; }
     .modal.show { display: flex; justify-content: center; align-items: center; opacity: 1; }
-    .modal-content { background-color: #fff; border-radius: 16px; width: 90%; max-width: 600px; height: 80vh; max-height: 700px; display: flex; flex-direction: column; box-shadow: 0 20px 40px rgba(0,0,0,0.1); transform: translateY(-10px); transition: transform 0.2s ease; overflow: hidden;}
+    .modal-content { background-color: #fff; border-radius: 16px; width: 90%; max-width: 600px; height: 80vh; max-height: 700px; display: flex; flex-direction: column; box-shadow: 0 20px 40px rgba(0,0,0,0.1); transform: translateY(-10px); transition: transform 0.3s ease; overflow: hidden;}
     .modal.show .modal-content { transform: translateY(0); }
     .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px 15px; }
     .modal-header h2 { font-size: 1.1em; margin: 0; color: var(--text-main); font-weight: 600; }
-    .close-btn { font-size: 1.6em; color: #9ca3af; cursor: pointer; line-height: 1; font-weight: 300;}
+    .close-btn { font-size: 1.6em; color: #9ca3af; cursor: pointer; line-height: 1; font-weight: 300; transition: color 0.2s ease;}
     .close-btn:hover { color: var(--text-main); }
     .modal-search { padding: 0 24px 15px; border-bottom: 1px solid var(--border-light); }
-    #dict-search { width: 100%; padding: 12px 16px; border: 1px solid var(--border-light); border-radius: 8px; font-size: 0.95em; outline: none; transition: all 0.2s; background: var(--bg-page); color: var(--text-main); }
+    #dict-search { width: 100%; padding: 12px 16px; border: 1px solid var(--border-light); border-radius: 8px; font-size: 0.95em; outline: none; transition: border-color 0.2s ease, background-color 0.2s ease; background: var(--bg-page); color: var(--text-main); }
     #dict-search:focus { border-color: var(--text-muted); background: #fff; }
     .dict-results { padding: 15px 24px; overflow-y: auto; flex-grow: 1; }
     .dict-item { background: #fff; border-bottom: 1px solid var(--border-light); padding: 16px 0; white-space: pre-wrap; font-size: 0.9em; line-height: 1.7; color: var(--text-main); }
     .dict-item:last-child { border-bottom: none; }
     .highlight-text { background-color: #fef08a; color: #b45309; font-weight: 500; padding: 0 2px; }
 
-   /* 移动端终极完美适配 */
     @media (max-width: 768px) {
         body { padding: 0; background: var(--bg-card); }
-        /* 增加了底部的 60px 留白，适配 iPhone 底部黑条 */
         #game-container { padding: 25px 20px 60px; min-height: 100vh; border-radius: 0; border: none; box-shadow: none; max-width: 100%;}
         
         .header-section { margin-bottom: 20px; flex-wrap: wrap;}
@@ -172,16 +171,13 @@
         #sentence-area { min-height: 80px; margin-bottom: 30px; }
         #sentence-container { font-size: 1.25em; line-height: 1.6; }
         
-        /* 加大了选项间的 gap 到 16px，提升呼吸感和防误触 */
         #options-container { grid-template-columns: 1fr; gap: 16px; margin-bottom: 25px;}
         .option-btn { height: auto; padding: 18px 16px; border-radius: 12px;}
         
         #feedback { height: auto; min-height: 120px; max-height: none; padding: 20px; margin-bottom: 20px;}
         
-        /* 统一了圆角到 12px，稍微增加了高度 */
         #next-btn { width: 100%; max-width: none; height: 54px; font-size: 1.05em; border-radius: 12px;}
         
-        /* 字典弹窗移动端优化 */
         .modal-content { width: 100%; height: 92vh; border-radius: 20px 20px 0 0; position: absolute; bottom: 0; transform: translateY(100%);}
         .modal.show .modal-content { transform: translateY(0); }
     }
@@ -190,11 +186,10 @@
 <body>
     
 <div id="game-container">
-    <!-- 新增进度条 -->
     <div id="progress-bar"></div>
 
     <div class="header-section">
-        <div class="title-group">
+        <div>
             <h1>日本語文法クエスト</h1>
             <p id="subtitle">JLPT N1 & N2 Grammar Mastery</p>
         </div>
@@ -225,8 +220,7 @@
         <div class="header-right">
              <button id="dict-btn" class="btn">📖 文法辞典</button>
              <button id="review-btn" class="btn">復習モード (0)</button>
-             <!-- 新增：错题本清空按钮 -->
-             <button id="clear-mistakes-btn" class="btn" style="display: none;">🗑️ クリア</button>
+             <button id="clear-mistakes-btn" class="btn" style="display: none;">クリア</button>
         </div>
     </header>
 
@@ -239,7 +233,7 @@
     <div class="bottom-section">
         <div id="feedback"></div>
         <div id="next-btn-container">
-            <button id="next-btn">次の問題 (Space)</button>
+            <button id="next-btn">次の問題 (Enter)</button>
         </div>
     </div>
 </div>
@@ -252,11 +246,10 @@
             <span class="close-btn">&times;</span>
         </div>
         <div class="modal-search">
-            <!-- 优化：使用 type="search" -->
-            <input type="search" id="dict-search" placeholder="文法や意味を検索... (例: かかわらず)">
+            <input type="search" id="dict-search" placeholder="検索... (例: かかわらず)">
         </div>
         <div id="dict-results" class="dict-results">
-            <div style="text-align:center; color:#95a5a6; padding: 20px;">読み込み中...</div>
+            <div style="text-align:center; color:#9ca3af; padding: 20px;">読み込み中...</div>
         </div>
     </div>
 </div>
@@ -275,7 +268,7 @@
     const nextBtnContainer = document.getElementById('next-btn-container'); 
     const scoreEl = document.getElementById('score');
     const reviewBtn = document.getElementById('review-btn');
-    const clearMistakesBtn = document.getElementById('clear-mistakes-btn'); // 获取清除按钮
+    const clearMistakesBtn = document.getElementById('clear-mistakes-btn');
     const levelFilterButtons = document.querySelectorAll('.level-btn');
     const customSelectWrapper = document.querySelector('.custom-select-wrapper');
     const customSelectTrigger = document.getElementById('custom-select-trigger');
@@ -291,7 +284,6 @@
     let mistakeIds = [];
     let isReviewMode = false, currentLevel = 'All', currentSetId = '1', pausedState = null;
 
-    // 兼容 Safari 的 requestIdleCallback
     const idleCallback = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
 
     function showNotification(message) {
@@ -336,14 +328,11 @@
         reviewBtn.textContent = isReviewMode ? '通常モードに戻る' : `復習モード (${mistakeIds.length})`;
         reviewBtn.disabled = mistakeIds.length === 0 && !isReviewMode;
         reviewBtn.classList.toggle('active', isReviewMode);
-        
-        // 显示/隐藏清除按钮
         clearMistakesBtn.style.display = (isReviewMode && mistakeIds.length > 0) ? 'inline-block' : 'none';
     }
 
-    // 绑定清空错题事件
     clearMistakesBtn.addEventListener('click', () => {
-        if (confirm('本当に復習リストをクリアしますか？\n(Are you sure you want to clear the mistake list?)')) {
+        if (confirm('本当に復習リストをクリアしますか？')) {
             mistakeIds = [];
             saveMistakes();
             isReviewMode = false;
@@ -354,7 +343,7 @@
     });
 
     function updateScore() {
-        scoreEl.style.display = isReviewMode ? 'none' : 'block';
+        scoreEl.style.visibility = isReviewMode ? 'hidden' : 'visible';
         if (!isReviewMode) {
             scoreEl.textContent = `Score: ${score} / ${totalQuestions}`;
         }
@@ -363,8 +352,11 @@
     function updateUiForModeChange() {
         updateReviewButton();
         updateScore();
-        customSelectWrapper.classList.toggle('disabled', isReviewMode);
-        document.getElementById('level-filter-group').classList.toggle('disabled', isReviewMode);
+        customSelectWrapper.style.pointerEvents = isReviewMode ? 'none' : 'auto';
+        customSelectWrapper.style.opacity = isReviewMode ? '0.5' : '1';
+        document.getElementById('level-filter-group').style.pointerEvents = isReviewMode ? 'none' : 'auto';
+        document.getElementById('level-filter-group').style.opacity = isReviewMode ? '0.5' : '1';
+        
         if (!isReviewMode) {
             levelFilterButtons.forEach(btn => btn.classList.remove('active'));
             document.getElementById(`filter-${currentLevel.toLowerCase()}`).classList.add('active');
@@ -442,7 +434,6 @@
         currentQuestion = question;
         isAnswered = false;
         requestAnimationFrame(() => {
-            // 更新进度条
             if(shuffledQuestionPool.length > 0) {
                 const progressPercent = (currentQuestionIndex / shuffledQuestionPool.length) * 100;
                 document.getElementById('progress-bar').style.width = `${progressPercent}%`;
@@ -450,12 +441,11 @@
                 document.getElementById('progress-bar').style.width = `0%`;
             }
 
-            // 触发切题丝滑入场动画
             const areaToAnimate = document.getElementById('sentence-area');
             const optionsToAnimate = document.getElementById('options-container');
             areaToAnimate.classList.remove('animate-enter');
             optionsToAnimate.classList.remove('animate-enter');
-            void areaToAnimate.offsetWidth; // 强制浏览器重绘
+            void areaToAnimate.offsetWidth; 
             areaToAnimate.classList.add('animate-enter');
             optionsToAnimate.classList.add('animate-enter');
 
@@ -521,7 +511,6 @@
         if (isCorrect) {
             if (!isReviewMode) score++;
             feedbackEl.classList.add('correct', 'visible');
-            // 优化：加入带有情感色彩的 Emoji
             feedbackEl.innerHTML = `<div id="feedback-title">🎉 正解！ (Correct)</div>${feedbackHTML}`;
             selectedButton.classList.add('correct');
             const index = mistakeIds.indexOf(currentQuestion.id);
@@ -531,7 +520,6 @@
             }
         } else {
             feedbackEl.classList.add('incorrect', 'visible');
-            // 优化：加入带有情感色彩的 Emoji
             feedbackEl.innerHTML = `<div id="feedback-title">💔 惜しい... (Incorrect)</div>${feedbackHTML}`;
             selectedButton.classList.add('selected', 'incorrect');
             optionButtons.forEach(btn => {
@@ -552,38 +540,45 @@
     }
 
     function handleKeyPress(e) {
-        // 1. 【全局快捷键】任何时候按 Esc 都可以关闭字典弹窗
+        // 1. 处理 ESC 关闭字典
         if (e.key === 'Escape' && dictModal.classList.contains('show')) {
             dictModal.classList.remove('show');
             return;
         }
 
-        // 2. 【防误触】如果光标正在输入框里打字（比如正在搜字典），屏蔽所有单键快捷键
         const activeTag = document.activeElement.tagName;
+        
+        // 2. 如果在搜索框里输入，不要拦截任何键（包括空格）
         if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') return;
 
-        // 3. 【新增快捷键】按 'D' 或 '/' 键，快速呼出文法字典
+        // 【核心修复】：彻底拦截空格键！防止触发任何按钮的点击或页面向下滚动
+        if (e.key === ' ') {
+            e.preventDefault();
+            return; 
+        }
+
+        // 3. 处理快捷键 D 呼出字典
         if ((e.key === 'd' || e.key === 'D' || e.key === '/') && !dictModal.classList.contains('show')) {
-            e.preventDefault(); // 防止 '/' 触发浏览器的原生搜索功能
-            document.getElementById('dict-btn').click(); // 触发打开字典逻辑
+            e.preventDefault(); 
+            document.getElementById('dict-btn').click(); 
             return;
         }
 
-        // 4. 【防冲突】如果焦点正好停留在某个按钮上，按空格会触发原生点击，此处直接拦截
+        // 4. 防止数字键影响下拉菜单等组件
         if (activeTag === 'BUTTON' || activeTag === 'SELECT') return;
 
-        // 5. 核心答题与切题逻辑
         const key = e.key;
+        
+        // 5. 答完题后，只认 Enter 键
         if (isAnswered) {
-            // 答完题后，按空格或回车进入下一题
-            if (key === ' ' || key === 'Enter') {
+            if (key === 'Enter') {
                 e.preventDefault();
                 displayNextQuestion();
             }
             return;
         }
         
-        // 没答题时，按 1, 2, 3, 4 选择选项
+        // 6. 还没答题时，处理数字键 1-4
         const numKey = parseInt(key);
         if (!isNaN(numKey) && numKey >= 1 && numKey <= 4) {
             const button = optionButtons[numKey - 1];
@@ -617,7 +612,7 @@
             if (onSetLoadedCallback) onSetLoadedCallback();
         };
         script.onerror = () => {
-            sentenceContainer.innerHTML = `エラー: 練習セット${setId}のデータファイルが見つかりません。<br><span style="font-size: 0.7em; color: var(--light-text-color);">${script.src} を確認してください。</span>`;
+            sentenceContainer.innerHTML = `エラー: 練習セット${setId}のデータファイルが見つかりません。`;
             optionsContainer.style.display = 'none';
         };
         document.body.appendChild(script);
@@ -651,6 +646,12 @@
     
     optionsContainer.addEventListener('click', (e) => {
         if (isAnswered) return;
+
+        const selection = window.getSelection();
+        if (selection && selection.toString().trim().length > 0) {
+            return; 
+        }
+
         const clickedButton = e.target.closest('.option-btn');
         if (clickedButton && clickedButton.style.display !== 'none') {
             const selectedAnswer = clickedButton.dataset.answer;
@@ -687,14 +688,12 @@
     const dictResults = document.getElementById('dict-results');
 
     dictBtn.addEventListener('click', () => {
-        // 优化：每次打开前清空上一次的搜索框残留
         dictSearch.value = '';
         dictModal.classList.add('show');
         dictSearch.focus();
         if (dictionaryData.length === 0) {
             loadDictionaryTxt(); 
         } else {
-            // 优化：每次打开渲染全部完整列表
             renderDictResults(dictionaryData); 
         }
     });
@@ -709,12 +708,10 @@
             const response = await fetch('./grammar-dict.txt'); 
             if (!response.ok) throw new Error('网络响应错误');
             const text = await response.text();
-            
             dictionaryData = text.split(/\n\s*\n/).map(item => item.trim()).filter(item => item.length > 0);
             renderDictResults(dictionaryData);
         } catch (error) {
-            dictResults.innerHTML = `<div style="color: red; text-align: center;">辞典ファイル(grammar-dict.txt)の読み込みに失敗しました。<br>ローカルサーバー(Live Serverなど)で実行しているか確認してください。</div>`;
-            console.error('TXT Load Error:', error);
+            dictResults.innerHTML = `<div style="color: red; text-align: center;">辞典ファイル(grammar-dict.txt)の読み込みに失敗しました。</div>`;
         }
     }
 
@@ -730,17 +727,15 @@
         renderDictResults(filtered, keyword);
     });
 
-    // 防止正则搜索特殊符号时崩溃
     function escapeRegExp(string) {
         return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
     function renderDictResults(dataArray, keyword = '') {
         if (dataArray.length === 0) {
-            dictResults.innerHTML = '<div style="text-align:center; color:#95a5a6;">見つかりませんでした。</div>';
+            dictResults.innerHTML = '<div style="text-align:center; color:#9ca3af;">見つかりませんでした。</div>';
             return;
         }
-
         dictResults.innerHTML = dataArray.map(item => {
             let displayText = item;
             if (keyword) {
