@@ -17,7 +17,6 @@
         --text-color: #2c3e50;
         --light-text-color: #95a5a6;
         --border-color: #edf2f7;
-        --shadow-color: rgba(149, 157, 165, 0.08);
     }
     
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -37,7 +36,8 @@
         background-color: var(--card-bg);
         padding: 50px 60px;
         border-radius: 24px; 
-        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.04);
+        /* 优化：弥散阴影，更高级 */
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
         width: 100%;
         max-width: 900px;
         text-align: center;
@@ -45,6 +45,15 @@
         min-height: 800px;
         display: flex;
         flex-direction: column;
+        overflow: hidden; /* 防止进度条溢出 */
+    }
+
+    /* 优化：进度条 */
+    #progress-bar {
+        position: absolute; top: 0; left: 0; height: 6px; 
+        background-color: var(--primary-color);
+        border-radius: 24px 24px 0 0;
+        width: 0%; transition: width 0.3s ease;
     }
 
     /* 标题区域 */
@@ -59,41 +68,44 @@
         flex-shrink: 0;
     }
     .header-left { display: flex; align-items: center; gap: 15px; }
+    .header-right { display: flex; align-items: center; gap: 8px; }
     
-    /* 难度筛选器 */
+    /* 难度筛选器 & 按钮通用样式 */
     .control-group { display: flex; background: transparent; padding: 0; gap: 5px; }
     .btn { 
         background: transparent; border: none; color: #b0b0b0; 
         padding: 5px 12px; border-radius: 8px; cursor: pointer; 
         font-weight: 600; font-size: 0.85em; transition: all 0.2s; 
+        touch-action: manipulation; /* 优化：禁用双击缩放，提升移动端响应速度 */
     }
     .btn:hover { color: var(--text-color); background-color: #f8f9fa; }
-    .level-btn.active { background-color: #f1f3f5; color: #555; box-shadow: none; }
+    .btn:active { transform: scale(0.95); } /* 优化：按压动效 */
+    .level-btn.active { background-color: #f1f3f5; color: #555; }
     
-    /* 复习按钮 */
-    #review-btn { 
-        border: 1px solid transparent; background: transparent; 
-        padding: 5px 12px; border-radius: 8px; font-size: 0.85em; color: #b0b0b0;
-    }
-    #review-btn:hover { background-color: #f8f9fa; color: var(--text-color); }
+    /* 复习按钮 & 清空按钮 */
+    #review-btn { border: 1px solid transparent; color: #b0b0b0; }
     #review-btn.active { background-color: #f3e5f5; color: #8e24aa; }
+    #clear-mistakes-btn { color: #e74c3c; background: #fff0f0; }
+    #clear-mistakes-btn:hover { background: #ffe4e4; color: #c0392b; }
 
     /* 下拉菜单 */
-    .custom-select-wrapper { position: relative; user-select: none; z-index: 20; } /* z-index 提高 */
+    .custom-select-wrapper { position: relative; user-select: none; z-index: 20; } 
     .custom-select-trigger { 
         display: flex; align-items: center; justify-content: space-between; 
         padding: 5px 12px; min-width: auto; 
         background: #f8f9fa; border: 1px solid transparent; border-radius: 8px; 
         cursor: pointer; transition: all 0.2s; 
         font-weight: 600; color: #888; font-size: 0.85em;
+        touch-action: manipulation;
     }
     .custom-select-trigger:hover { background: #f1f3f5; color: #555; }
+    .custom-select-trigger:active { transform: scale(0.95); }
     .custom-select-trigger .arrow { width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 4px solid currentColor; margin-left: 8px; opacity: 0.5; transition: transform 0.2s; }
     .custom-select-wrapper.open .arrow { transform: rotate(180deg); }
 
     .custom-select-options { 
         position: absolute; top: calc(100% + 5px); left: 0; 
-        width: 140px; /* 默认宽度 */
+        width: 140px; 
         border: 1px solid var(--border-color); border-radius: 8px; background: #fff; 
         box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
         opacity: 0; visibility: hidden; pointer-events: none; 
@@ -104,6 +116,13 @@
     .custom-option:hover { background-color: #f8f9fa; }
     .custom-option.selected { color: var(--primary-color); background-color: #f0f7ff; font-weight: 600; }
     
+    /* 题目与选项入场动画 */
+    @keyframes slideUpFade {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-enter { animation: slideUpFade 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+
     /* 题目区域 */
     #sentence-area {
         height: 120px; 
@@ -125,13 +144,22 @@
         border: 1px solid var(--border-color); border-radius: 16px; 
         cursor: pointer; transition: all .2s; font-weight: 600; color: var(--text-color); 
         box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        touch-action: manipulation;
     }
     .option-btn:hover:not(.answered) { border-color: var(--primary-color); transform: translateY(-3px); box-shadow: 0 8px 20px rgba(74, 144, 226, 0.1); }
+    .option-btn:active:not(.answered) { transform: scale(0.98); box-shadow: 0 2px 5px rgba(0,0,0,0.05); } /* 按压效果 */
     .option-btn.answered { cursor: default; }
+    
     .key-hint { font-size: .85em; font-weight: 700; background-color: #e9ecef; color: var(--light-text-color); width: 32px; height: 32px; border-radius: 8px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
     .option-text { flex-grow: 1; text-align: left; }
     
-    .option-btn.correct { background-color: var(--correct-bg); border-color: var(--correct-border); color: var(--correct-text); }
+    /* 正确动画跳动 */
+    @keyframes pop {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.03); }
+        100% { transform: scale(1); }
+    }
+    .option-btn.correct { background-color: var(--correct-bg); border-color: var(--correct-border); color: var(--correct-text); animation: pop 0.4s ease; }
     .option-btn.correct .key-hint { background-color: rgba(255,255,255,0.6); color: var(--correct-text); }
     .option-btn.selected.incorrect { background-color: var(--incorrect-bg); border-color: var(--incorrect-border); color: var(--incorrect-text); }
     .option-btn.selected.incorrect .key-hint { background-color: rgba(255,255,255,0.6); color: var(--incorrect-text); }
@@ -141,15 +169,18 @@
         flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-start; position: relative;
     }
 
+    /* 反馈动画弹窗 */
     #feedback {
         padding: 25px; border-radius: 16px; text-align: left;
         font-size: 1.05em; line-height: 1.7; 
-        height: 180px; overflow-y: auto;
-        visibility: hidden; opacity: 0; transition: opacity 0.3s;
-        margin-bottom: 20px; scrollbar-width: none; 
+        height: 180px; overflow-y: auto; scrollbar-width: none; 
+        visibility: hidden; opacity: 0; 
+        transform: translateY(10px); /* 动画初始位置 */
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); /* 回弹动效 */
+        margin-bottom: 20px;
     }
     #feedback::-webkit-scrollbar { display: none; }
-    #feedback.visible { visibility: visible; opacity: 1; }
+    #feedback.visible { visibility: visible; opacity: 1; transform: translateY(0); }
     #feedback.correct { background-color: var(--correct-bg); border: 1px solid var(--correct-border); color: #1b5e20; }
     #feedback.incorrect { background-color: var(--incorrect-bg); border: 1px solid var(--incorrect-border); color: #b71c1c; }
     #feedback-title { font-weight: 800; font-size: 1.2em; margin-bottom: 10px; }
@@ -164,10 +195,11 @@
     #next-btn {
         padding: 14px 50px; font-size: 1.1em; font-weight: 700; 
         background-color: var(--primary-color); color: #fff; border-radius: 30px; border: none; 
-        cursor: pointer; box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
-        transition: all 0.2s;
+        cursor: pointer; box-shadow: 0 8px 16px rgba(74, 144, 226, 0.3); /* 高级阴影 */
+        transition: all 0.2s; touch-action: manipulation;
     }
-    #next-btn:hover { background-color: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(74, 144, 226, 0.5); }
+    #next-btn:hover { background-color: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 12px 24px rgba(74, 144, 226, 0.4); }
+    #next-btn:active { transform: scale(0.95); }
     
     #score {
         position: fixed; top: 25px; right: 30px; 
@@ -188,88 +220,97 @@
         transition: all 0.3s;
     }
     #notification.visible { opacity: 1; transform: translate(-50%, 0); }
+    
+    /* 字典弹窗 */
+    .modal {
+        display: none; 
+        position: fixed; z-index: 2000; left: 0; top: 0;
+        width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(4px);
+        opacity: 0; transition: opacity 0.3s ease;
+    }
+    .modal.show { display: flex; justify-content: center; align-items: center; opacity: 1; }
 
-    /* ★★★ 移动端 终极修复 (Mobile Fix) ★★★ */
+    .modal-content {
+        background-color: #fff;
+        border-radius: 20px;
+        width: 90%; max-width: 600px;
+        max-height: 85vh;
+        display: flex; flex-direction: column;
+        box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+        transform: translateY(-20px); transition: transform 0.3s ease;
+    }
+    .modal.show .modal-content { transform: translateY(0); }
+
+    .modal-header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 20px 25px; border-bottom: 1px solid var(--border-color);
+    }
+    .modal-header h2 { font-size: 1.3em; margin: 0; color: var(--text-color); }
+    .close-btn { font-size: 1.8em; font-weight: bold; color: #aaa; cursor: pointer; line-height: 1; transition: color 0.2s;}
+    .close-btn:hover { color: var(--incorrect-text); }
+
+    .modal-search { padding: 15px 25px; background: #f8f9fa; }
+    /* 优化：使用 type="search" 原生支持一键清除 */
+    #dict-search {
+        width: 100%; padding: 12px 20px;
+        border: 2px solid var(--border-color); border-radius: 12px;
+        font-size: 1em; font-family: inherit; outline: none; transition: border-color 0.2s;
+    }
+    #dict-search:focus { border-color: var(--primary-color); }
+
+    .dict-results {
+        padding: 15px 25px; overflow-y: auto; flex-grow: 1;
+    }
+    .dict-item {
+        background: #f8f9fa; border-left: 4px solid var(--primary-color);
+        padding: 15px; margin-bottom: 15px; border-radius: 0 12px 12px 0;
+        white-space: pre-wrap; 
+        font-size: 0.95em; line-height: 1.6; color: var(--text-color);
+    }
+    .highlight-text { background-color: #fff59d; color: #d32f2f; font-weight: bold; padding: 0 2px; border-radius: 3px; }
+
+    /* 移动端适配优化 */
     @media (max-width: 768px) {
-        body { 
-            padding: 15px 10px; 
-            align-items: flex-start;
-        }
-        
-        #game-container { 
-            padding: 25px 20px; 
-            min-height: auto; 
-            height: auto;
-            border-radius: 20px;
-            margin-top: 10px;
-        }
-        
+        body { padding: 15px 10px; align-items: flex-start; }
+        #game-container { padding: 25px 20px; min-height: auto; height: auto; border-radius: 20px; margin-top: 10px; }
         h1 { font-size: 1.6em; margin-bottom: 5px; }
         #subtitle { margin-bottom: 20px; font-size: 0.9em; }
 
-        /* 头部改为垂直堆叠 */
         .app-header { flex-direction: column; align-items: stretch; gap: 15px; margin-bottom: 10px; }
         .header-left { flex-direction: column; align-items: stretch; gap: 10px; }
-        .header-right { justify-content: center; } /* 复习按钮居中 */
+        .header-right { justify-content: center; flex-wrap: wrap; } 
         
-        /* 关键修复：下拉菜单宽度和交互 */
         .custom-select-wrapper { width: 100%; }
         .custom-select-trigger { width: 100%; justify-content: space-between; }
-        
-        /* 关键修复：手机端下拉菜单不再悬浮，而是嵌入流中，防止遮挡 */
-        .custom-select-options { 
-            position: static; /* 取消绝对定位 */
-            width: 100%; 
-            opacity: 1; 
-            visibility: visible;
-            display: none; /* 默认隐藏 */
-            box-shadow: none;
-            border: 1px solid var(--border-color);
-            transform: none;
-            margin-top: 5px;
-        }
-        .custom-select-wrapper.open .custom-select-options { 
-            display: block; /* 展开时把下面内容顶下去 */
-            animation: slideDownMobile 0.2s ease-out;
-        }
-        
-        @keyframes slideDownMobile {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .custom-select-options { position: static; width: 100%; opacity: 1; visibility: visible; display: none; box-shadow: none; border: 1px solid var(--border-color); transform: none; margin-top: 5px; }
+        .custom-select-wrapper.open .custom-select-options { display: block; animation: slideDownMobile 0.2s ease-out; }
+        @keyframes slideDownMobile { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
         .control-group { justify-content: space-between; width: 100%; }
         .btn { flex: 1; text-align: center; }
         
-        /* 题目区域 */
         #sentence-area { height: auto; min-height: 80px; margin: 20px 0; }
         #sentence-container { font-size: 1.3em; line-height: 1.5; }
-        
-        /* 选项区域 - 单列 */
         #options-container { grid-template-columns: 1fr; height: auto; gap: 12px; }
         .option-btn { height: auto; padding: 15px; min-height: 60px; }
-        
-        /* 反馈区域 */
         #feedback { height: auto; min-height: 120px; max-height: 300px; padding: 20px; }
         
-        /* 分数显示在卡片内部上方 */
-        #score { 
-            position: absolute; 
-            top: 15px; 
-            right: 15px;
-            padding: 4px 10px;
-            font-size: 0.8em;
-            box-shadow: none;
-            border: 1px solid var(--border-color);
-            background: #f8f9fa;
-        }
+        #score { position: absolute; top: 15px; right: 15px; padding: 4px 10px; font-size: 0.8em; box-shadow: none; border: 1px solid var(--border-color); background: #f8f9fa; }
+        
+        /* 移动端弹窗优化 */
+        .modal-content { width: 95%; max-height: 90vh; border-radius: 24px; }
+        .close-btn { padding: 10px; margin-right: -10px; }
+        .dict-item { padding: 12px; font-size: 0.9em; }
     }
 </style>
 </head>
 <body>
     
 <div id="game-container">
-    <!-- Score 移入内部，方便定位 -->
+    <!-- 新增进度条 -->
+    <div id="progress-bar"></div>
     <div id="score">Score: 0 / 0</div>
 
     <div class="header-section">
@@ -299,7 +340,10 @@
         </div>
 
         <div class="header-right">
+             <button id="dict-btn" class="btn">📖 文法辞典</button>
              <button id="review-btn" class="btn">復習モード (0)</button>
+             <!-- 新增：错题本清空按钮 -->
+             <button id="clear-mistakes-btn" class="btn" style="display: none;">🗑️ クリア</button>
         </div>
     </header>
 
@@ -318,6 +362,21 @@
 </div>
 
 <div id="notification"></div>
+<div id="dict-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>📖 文法辞典</h2>
+            <span class="close-btn">&times;</span>
+        </div>
+        <div class="modal-search">
+            <!-- 优化：使用 type="search" -->
+            <input type="search" id="dict-search" placeholder="文法や意味を検索... (例: かかわらず)">
+        </div>
+        <div id="dict-results" class="dict-results">
+            <div style="text-align:center; color:#95a5a6; padding: 20px;">読み込み中...</div>
+        </div>
+    </div>
+</div>
 
 <script>
     let grammarData = [];
@@ -333,6 +392,7 @@
     const nextBtnContainer = document.getElementById('next-btn-container'); 
     const scoreEl = document.getElementById('score');
     const reviewBtn = document.getElementById('review-btn');
+    const clearMistakesBtn = document.getElementById('clear-mistakes-btn'); // 获取清除按钮
     const levelFilterButtons = document.querySelectorAll('.level-btn');
     const customSelectWrapper = document.querySelector('.custom-select-wrapper');
     const customSelectTrigger = document.getElementById('custom-select-trigger');
@@ -347,6 +407,9 @@
     let currentQuestion = {}, score = 0, totalQuestions = 0, isAnswered = false;
     let mistakeIds = [];
     let isReviewMode = false, currentLevel = 'All', currentSetId = '1', pausedState = null;
+
+    // 兼容 Safari 的 requestIdleCallback
+    const idleCallback = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
 
     function showNotification(message) {
         clearTimeout(notificationTimeout);
@@ -390,10 +453,24 @@
         reviewBtn.textContent = isReviewMode ? '通常モードに戻る' : `復習モード (${mistakeIds.length})`;
         reviewBtn.disabled = mistakeIds.length === 0 && !isReviewMode;
         reviewBtn.classList.toggle('active', isReviewMode);
+        
+        // 显示/隐藏清除按钮
+        clearMistakesBtn.style.display = (isReviewMode && mistakeIds.length > 0) ? 'inline-block' : 'none';
     }
 
+    // 绑定清空错题事件
+    clearMistakesBtn.addEventListener('click', () => {
+        if (confirm('本当に復習リストをクリアしますか？\n(Are you sure you want to clear the mistake list?)')) {
+            mistakeIds = [];
+            saveMistakes();
+            isReviewMode = false;
+            updateUiForModeChange();
+            startNewQuiz(); 
+            showNotification('復習リストをクリアしました！');
+        }
+    });
+
     function updateScore() {
-        // 手机端始终显示 Score
         scoreEl.style.display = isReviewMode ? 'none' : 'block';
         if (!isReviewMode) {
             scoreEl.textContent = `Score: ${score} / ${totalQuestions}`;
@@ -482,9 +559,27 @@
         currentQuestion = question;
         isAnswered = false;
         requestAnimationFrame(() => {
+            // 更新进度条
+            if(shuffledQuestionPool.length > 0) {
+                const progressPercent = (currentQuestionIndex / shuffledQuestionPool.length) * 100;
+                document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+            } else {
+                document.getElementById('progress-bar').style.width = `0%`;
+            }
+
+            // 触发切题丝滑入场动画
+            const areaToAnimate = document.getElementById('sentence-area');
+            const optionsToAnimate = document.getElementById('options-container');
+            areaToAnimate.classList.remove('animate-enter');
+            optionsToAnimate.classList.remove('animate-enter');
+            void areaToAnimate.offsetWidth; // 强制浏览器重绘
+            areaToAnimate.classList.add('animate-enter');
+            optionsToAnimate.classList.add('animate-enter');
+
             feedbackEl.classList.remove('visible', 'correct', 'incorrect');
             nextBtnContainer.classList.remove('visible'); 
             optionsContainer.style.display = 'grid';
+            
             if (!question || !question.sentence_parts) {
                 sentenceContainer.innerHTML = "問題の読み込みに失敗しました。";
                 optionsContainer.style.display = 'none';
@@ -492,8 +587,10 @@
             }
             const [part1, part2] = question.sentence_parts;
             sentenceContainer.innerHTML = `${part1}<span class="blank">＿＿＿</span>${part2}`;
+            
             const distractors = getDistractorOptions(question.grammar_answer);
             const options = shuffleArray([question.grammar_answer, ...distractors]);
+            
             optionButtons.forEach((button, index) => {
                 if (options[index]) {
                     button.className = 'option-btn';
@@ -541,19 +638,18 @@
         if (isCorrect) {
             if (!isReviewMode) score++;
             feedbackEl.classList.add('correct', 'visible');
-            feedbackEl.innerHTML = `<div id="feedback-title">Correct!</div>${feedbackHTML}`;
+            // 优化：加入带有情感色彩的 Emoji
+            feedbackEl.innerHTML = `<div id="feedback-title">🎉 正解！ (Correct)</div>${feedbackHTML}`;
             selectedButton.classList.add('correct');
             const index = mistakeIds.indexOf(currentQuestion.id);
             if (index > -1) {
                 mistakeIds.splice(index, 1);
-                requestIdleCallback(() => {
-                    saveMistakes();
-                    updateReviewButton();
-                });
+                idleCallback(() => { saveMistakes(); updateReviewButton(); });
             }
         } else {
             feedbackEl.classList.add('incorrect', 'visible');
-            feedbackEl.innerHTML = `<div id="feedback-title">Incorrect</div>${feedbackHTML}`;
+            // 优化：加入带有情感色彩的 Emoji
+            feedbackEl.innerHTML = `<div id="feedback-title">💔 惜しい... (Incorrect)</div>${feedbackHTML}`;
             selectedButton.classList.add('selected', 'incorrect');
             optionButtons.forEach(btn => {
                 if (btn.dataset.answer === currentQuestion.grammar_answer) {
@@ -565,10 +661,7 @@
                 mistakeIds.splice(existingIndex, 1);
             }
             mistakeIds.push(currentQuestion.id);
-            requestIdleCallback(() => {
-                saveMistakes();
-                updateReviewButton();
-            });
+            idleCallback(() => { saveMistakes(); updateReviewButton(); });
         }
         if (!isReviewMode) updateScore();
         nextBtnContainer.classList.add('visible'); 
@@ -576,15 +669,38 @@
     }
 
     function handleKeyPress(e) {
-        if (document.activeElement.tagName === 'BUTTON' || document.activeElement.tagName === 'SELECT') return;
+        // 1. 【全局快捷键】任何时候按 Esc 都可以关闭字典弹窗
+        if (e.key === 'Escape' && dictModal.classList.contains('show')) {
+            dictModal.classList.remove('show');
+            return;
+        }
+
+        // 2. 【防误触】如果光标正在输入框里打字（比如正在搜字典），屏蔽所有单键快捷键
+        const activeTag = document.activeElement.tagName;
+        if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') return;
+
+        // 3. 【新增快捷键】按 'D' 或 '/' 键，快速呼出文法字典
+        if ((e.key === 'd' || e.key === 'D' || e.key === '/') && !dictModal.classList.contains('show')) {
+            e.preventDefault(); // 防止 '/' 触发浏览器的原生搜索功能
+            document.getElementById('dict-btn').click(); // 触发打开字典逻辑
+            return;
+        }
+
+        // 4. 【防冲突】如果焦点正好停留在某个按钮上，按空格会触发原生点击，此处直接拦截
+        if (activeTag === 'BUTTON' || activeTag === 'SELECT') return;
+
+        // 5. 核心答题与切题逻辑
         const key = e.key;
         if (isAnswered) {
+            // 答完题后，按空格或回车进入下一题
             if (key === ' ' || key === 'Enter') {
                 e.preventDefault();
                 displayNextQuestion();
             }
             return;
         }
+        
+        // 没答题时，按 1, 2, 3, 4 选择选项
         const numKey = parseInt(key);
         if (!isNaN(numKey) && numKey >= 1 && numKey <= 4) {
             const button = optionButtons[numKey - 1];
@@ -679,6 +795,79 @@
             customSelectWrapper.classList.remove('open');
         });
     });
+
+    let dictionaryData = []; 
+    const dictBtn = document.getElementById('dict-btn');
+    const dictModal = document.getElementById('dict-modal');
+    const closeBtn = document.querySelector('.close-btn');
+    const dictSearch = document.getElementById('dict-search');
+    const dictResults = document.getElementById('dict-results');
+
+    dictBtn.addEventListener('click', () => {
+        // 优化：每次打开前清空上一次的搜索框残留
+        dictSearch.value = '';
+        dictModal.classList.add('show');
+        dictSearch.focus();
+        if (dictionaryData.length === 0) {
+            loadDictionaryTxt(); 
+        } else {
+            // 优化：每次打开渲染全部完整列表
+            renderDictResults(dictionaryData); 
+        }
+    });
+
+    closeBtn.addEventListener('click', () => dictModal.classList.remove('show'));
+    window.addEventListener('click', (e) => {
+        if (e.target === dictModal) dictModal.classList.remove('show');
+    });
+
+    async function loadDictionaryTxt() {
+        try {
+            const response = await fetch('./grammar-dict.txt'); 
+            if (!response.ok) throw new Error('网络响应错误');
+            const text = await response.text();
+            
+            dictionaryData = text.split(/\n\s*\n/).map(item => item.trim()).filter(item => item.length > 0);
+            renderDictResults(dictionaryData);
+        } catch (error) {
+            dictResults.innerHTML = `<div style="color: red; text-align: center;">辞典ファイル(grammar-dict.txt)の読み込みに失敗しました。<br>ローカルサーバー(Live Serverなど)で実行しているか確認してください。</div>`;
+            console.error('TXT Load Error:', error);
+        }
+    }
+
+    dictSearch.addEventListener('input', (e) => {
+        const keyword = e.target.value.trim().toLowerCase();
+        if (!keyword) {
+            renderDictResults(dictionaryData);
+            return;
+        }
+        const filtered = dictionaryData.filter(item => 
+            item.toLowerCase().includes(keyword)
+        );
+        renderDictResults(filtered, keyword);
+    });
+
+    // 防止正则搜索特殊符号时崩溃
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function renderDictResults(dataArray, keyword = '') {
+        if (dataArray.length === 0) {
+            dictResults.innerHTML = '<div style="text-align:center; color:#95a5a6;">見つかりませんでした。</div>';
+            return;
+        }
+
+        dictResults.innerHTML = dataArray.map(item => {
+            let displayText = item;
+            if (keyword) {
+                const safeKeyword = escapeRegExp(keyword);
+                const regex = new RegExp(`(${safeKeyword})`, 'gi');
+                displayText = item.replace(regex, `<span class="highlight-text">$1</span>`);
+            }
+            return `<div class="dict-item">${displayText}</div>`;
+        }).join('');
+    }
 
     window.onload = () => {
         initUI();
